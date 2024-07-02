@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const path = require('path');
 
 dotenv.config();
 
@@ -20,6 +21,8 @@ app.get('/', (req, res) => {
 
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/customers', require('./routes/customerRoutes'));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 
 const PORT = process.env.PORT || 5000;
 

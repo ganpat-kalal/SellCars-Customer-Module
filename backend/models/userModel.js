@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const crypto = require('crypto');
 
 const userSchema = new mongoose.Schema({
   email: {
@@ -9,6 +10,12 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
+    validate: {
+      validator: function(v) {
+        return v.length === 32;
+      },
+      message: props => `${props.value} is not exactly 32 characters!`
+    }
   },
   created_at: {
     type: Date,

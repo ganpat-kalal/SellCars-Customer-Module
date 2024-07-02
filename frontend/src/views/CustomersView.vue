@@ -1,6 +1,6 @@
 <template>
-  <div class="home">
-    <h1>Home</h1>
+  <div class="customers">
+    <h1>Customers</h1>
   </div>
 </template>
 
@@ -8,12 +8,12 @@
 import { defineComponent } from 'vue';
 
 export default defineComponent({
-  name: 'HomeView',
+  name: 'CustomersView',
 });
 </script>
 
 <style scoped>
-.home {
+.customers {
   text-align: center;
 }
 </style>

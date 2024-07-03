@@ -1,14 +1,31 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const customerController = require('../controllers/customerController');
-const authMiddleware = require('../middleware/authMiddleware');
-const multer = require('multer');
-const upload = multer({ dest: 'uploads/' });
+const {
+  getCustomers,
+  createCustomer,
+  updateCustomer,
+  deleteCustomer,
+  uploadCustomers,
+  uploadContactPersons,
+  uploadAddresses,
+} = require("../controllers/customerController");
+const authMiddleware = require("../middleware/authMiddleware");
+const multer = require("multer");
 
-router.get('/', authMiddleware, customerController.getAllCustomers);
-router.post('/', authMiddleware, customerController.createCustomer);
-router.put('/:id', authMiddleware, customerController.updateCustomer);
-router.delete('/:id', authMiddleware, customerController.deleteCustomer);
-router.post('/upload', authMiddleware, upload.single('file'), customerController.uploadCustomers);
+const upload = multer({ dest: "uploads/" });
+
+router.use(authMiddleware);
+
+router.route("/").get(getCustomers).post(createCustomer);
+
+router.route("/:id").put(updateCustomer).delete(deleteCustomer);
+
+router.route("/upload/customers").post(upload.single("file"), uploadCustomers);
+
+router
+  .route("/upload/contact-persons")
+  .post(upload.single("file"), uploadContactPersons);
+
+router.route("/upload/addresses").post(upload.single("file"), uploadAddresses);
 
 module.exports = router;

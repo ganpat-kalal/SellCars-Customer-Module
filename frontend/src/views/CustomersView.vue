@@ -8,9 +8,9 @@
           <p>Upload customer</p>
           <input type="file" @change="handleFileUpload($event, 'customers')" accept=".csv" />
         </div>
-        <div class="upload-area" @drop.prevent="handleDrop($event, 'contactPersons')" @dragover.prevent>
+        <div class="upload-area" @drop.prevent="handleDrop($event, 'contact-persons')" @dragover.prevent>
           <p>Upload contact persons</p>
-          <input type="file" @change="handleFileUpload($event, 'contactPersons')" accept=".csv" />
+          <input type="file" @change="handleFileUpload($event, 'contact-persons')" accept=".csv" />
         </div>
         <div class="upload-area" @drop.prevent="handleDrop($event, 'addresses')" @dragover.prevent>
           <p>Upload addresses</p>
@@ -58,7 +58,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed } from 'vue';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { Customer } from '@/types/Customer';
 
 export default defineComponent({
@@ -81,7 +81,6 @@ export default defineComponent({
       } catch (error) {
         if (axios.isAxiosError(error)) {
           if (error.response && error.response.status === 401) {
-            // Handle unauthorized error (redirect to login, etc.)
             localStorage.removeItem('token');
             window.location.href = '/login';
           }
@@ -94,14 +93,28 @@ export default defineComponent({
     const handleFileUpload = async (event: Event, type: string) => {
       const target = event.target as HTMLInputElement;
       if (target.files && target.files[0]) {
+        if (target.files[0].size > 500 * 1024) {
+          alert('File size exceeds the limit of 500 KB');
+          return;
+        }
         const formData = new FormData();
         formData.append('file', target.files[0]);
-        await axios.post(`http://localhost:5000/api/${type}/upload`, formData, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        try {
+          await axios.post(`http://localhost:5000/api/customers/upload/${type}`, formData, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              'Content-Type': 'multipart/form-data'
+            }
+          });
+          fetchCustomers();
+          alert('File uploaded successfully');
+        } catch (error) {
+          if (axios.isAxiosError(error)) {
+            alert('File upload failed: ' + (error.response?.data.message || error.message));
+          } else {
+            alert('File upload failed: ' + error);
           }
-        });
-        fetchCustomers();
+        }
       }
     };
 
@@ -109,14 +122,28 @@ export default defineComponent({
       event.preventDefault();
       const files = event.dataTransfer?.files;
       if (files && files[0]) {
+        if (files[0].size > 500 * 1024) {
+          alert('File size exceeds the limit of 500 KB');
+          return;
+        }
         const formData = new FormData();
         formData.append('file', files[0]);
-        await axios.post(`http://localhost:5000/api/${type}/upload`, formData, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        try {
+          await axios.post(`http://localhost:5000/api/customers/upload/${type}`, formData, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              'Content-Type': 'multipart/form-data'
+            }
+          });
+          fetchCustomers();
+          alert('File uploaded successfully');
+        } catch (error) {
+          if (axios.isAxiosError(error)) {
+            alert('File upload failed: ' + (error.response?.data.message || error.message));
+          } else {
+            alert('File upload failed: ' + error);
           }
-        });
-        fetchCustomers();
+        }
       }
     };
 

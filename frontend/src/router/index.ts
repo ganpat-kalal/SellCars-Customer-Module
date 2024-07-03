@@ -18,12 +18,22 @@ const routes: Array<RouteRecordRaw> = [
     path: '/customers',
     name: 'Customers',
     component: CustomersView,
+    meta: { requiresAuth: true },
   },
 ];
 
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes,
+});
+
+router.beforeEach((to, from, next) => {
+  const isAuthenticated = !!localStorage.getItem('token');
+  if (to.matched.some(record => record.meta.requiresAuth) && !isAuthenticated) {
+    next({ name: 'Login' });
+  } else {
+    next();
+  }
 });
 
 export default router;

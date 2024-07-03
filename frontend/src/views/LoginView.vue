@@ -29,10 +29,8 @@ export default defineComponent({
           email: username.value,
           password: password.value,
         });
-        // On successful login, save the token and redirect
         localStorage.setItem('token', response.data.token);
         errorMessage.value = '';
-        // Redirect to the customers page
         window.location.href = '/customers';
       } catch (error) {
         errorMessage.value = 'Invalid username or password';

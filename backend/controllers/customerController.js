@@ -19,8 +19,8 @@ const createCustomer = async (req, res) => {
 
 const updateCustomer = async (req, res) => {
   try {
-    const updatedCustomer = await Customer.findByIdAndUpdate(
-      req.params.id,
+    const updatedCustomer = await Customer.findOneAndUpdate(
+      { intnr: req.params.intnr },
       req.body,
       { new: true }
     );
@@ -32,7 +32,12 @@ const updateCustomer = async (req, res) => {
 
 const deleteCustomer = async (req, res) => {
   try {
-    await Customer.findByIdAndDelete(req.params.id);
+    const customer = await Customer.findOneAndDelete({
+      intnr: req.params.intnr,
+    });
+    if (!customer) {
+      return res.status(404).json({ message: "Customer not found" });
+    }
     res.json({ message: "Customer deleted" });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -242,12 +247,10 @@ const uploadContactPersons = async (req, res) => {
           .status(201)
           .json({ message: "Contact persons uploaded successfully" });
       } catch (err) {
-        res
-          .status(500)
-          .json({
-            message: "Error uploading contact persons",
-            error: err.message,
-          });
+        res.status(500).json({
+          message: "Error uploading contact persons",
+          error: err.message,
+        });
       }
     });
 };

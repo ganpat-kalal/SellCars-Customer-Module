@@ -39,15 +39,15 @@
         <tbody>
           <tr v-for="customer in filteredCustomers" :key="customer.intnr">
             <td>{{ customer.intnr }}</td>
-            <td>{{ customer.contact_persons[0].first_name }}</td>
-            <td>{{ customer.contact_persons[0].last_name }}</td>
-            <td>{{ customer.addresses[0].company_name }}</td>
-            <td>{{ customer.addresses[0].country }}</td>
-            <td>{{ customer.addresses[0].zip }} / {{ customer.addresses[0].city }}</td>
-            <td>{{ customer.addresses[0].street }}</td>
+            <td>{{ customer.contact_persons?.[0]?.first_name }}</td>
+            <td>{{ customer.contact_persons?.[0]?.last_name }}</td>
+            <td>{{ customer.addresses?.[0]?.company_name }}</td>
+            <td>{{ customer.addresses?.[0]?.country }}</td>
+            <td>{{ customer.addresses?.[0]?.zip }} / {{ customer.addresses?.[0]?.city }}</td>
+            <td>{{ customer.addresses?.[0]?.street }}</td>
             <td>
               <button @click="editCustomer(customer)">Edit</button>
-              <button @click="deleteCustomer(customer.intnr)">Delete</button>
+              <button @click="confirmDeleteCustomer(customer.intnr)">Delete</button> <!-- Add this line -->
             </td>
           </tr>
         </tbody>
@@ -155,9 +155,9 @@ export default defineComponent({
       return customers.value
         .filter((customer) => {
           return (
-            customer.contact_persons[0].first_name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-            customer.contact_persons[0].last_name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-            customer.addresses[0].company_name.toLowerCase().includes(searchQuery.value.toLowerCase())
+            customer.contact_persons?.[0]?.first_name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+            customer.contact_persons?.[0]?.last_name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+            customer.addresses?.[0]?.company_name.toLowerCase().includes(searchQuery.value.toLowerCase())
           );
         })
         .sort((a, b) => {
@@ -192,14 +192,27 @@ export default defineComponent({
       // Implement edit customer functionality
     };
 
-    const deleteCustomer = async (intnr: string) => {
+    const confirmDeleteCustomer = async (intnr: string) => {
       if (confirm('Are you sure that you want to delete this customer?')) {
+        deleteCustomer(intnr);
+      }
+    };
+
+    const deleteCustomer = async (intnr: string) => {
+      try {
         await axios.delete(`http://localhost:5000/api/customers/${intnr}`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
         });
         fetchCustomers();
+        alert('Customer deleted successfully');
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+            alert('Failed to delete customer: ' + (error.response?.data.message || error.message));
+          } else {
+            alert('Failed to delete customer: ' + error);
+          }
       }
     };
 
@@ -214,6 +227,7 @@ export default defineComponent({
       handleDrop,
       createCustomer,
       editCustomer,
+      confirmDeleteCustomer,
       deleteCustomer,
     };
   },

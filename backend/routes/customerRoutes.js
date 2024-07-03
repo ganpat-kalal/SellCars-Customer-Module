@@ -18,7 +18,7 @@ router.use(authMiddleware);
 
 router.route("/").get(getCustomers).post(createCustomer);
 
-router.route("/:id").put(updateCustomer).delete(deleteCustomer);
+router.route("/:intnr").put(updateCustomer).delete(deleteCustomer);
 
 router.route("/upload/customers").post(upload.single("file"), uploadCustomers);
 

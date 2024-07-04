@@ -47,28 +47,35 @@
             <td>{{ customer.addresses?.[0]?.street }}</td>
             <td>
               <button @click="editCustomer(customer)">Edit</button>
-              <button @click="confirmDeleteCustomer(customer.intnr)">Delete</button> <!-- Add this line -->
+              <button @click="confirmDeleteCustomer(customer.intnr)">Delete</button>
             </td>
           </tr>
         </tbody>
       </table>
+      <edit-customer-modal :show="showEditModal" :customer="selectedCustomer" @close="closeEditModal"
+        @saved="fetchCustomers"></edit-customer-modal>
     </main>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, computed } from 'vue';
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import { Customer } from '@/types/Customer';
+import EditCustomerModal from '@/components/EditCustomerModal.vue';
 
 export default defineComponent({
   name: 'CustomersView',
+  components: {
+    EditCustomerModal,
+  },
   setup() {
     const customers = ref<Customer[]>([]);
     const searchQuery = ref('');
     const sortKey = ref('');
     const sortAsc = ref(true);
-    const showCreateModal = ref(false);
+    const showEditModal = ref(false);
+    const selectedCustomer = ref<Customer | null>(null);
 
     const fetchCustomers = async () => {
       try {
@@ -147,7 +154,7 @@ export default defineComponent({
       }
     };
 
-    const getValueByPath = (obj: any, path: string): any => {
+    const getValueByPath = (obj: any, path: string) => {
       return path.split('.').reduce((acc, part) => acc && acc[part], obj);
     };
 
@@ -185,11 +192,16 @@ export default defineComponent({
     const createCustomer = async () => {
       // Implement create customer functionality
       fetchCustomers();
-      showCreateModal.value = false;
     };
 
     const editCustomer = (customer: Customer) => {
-      // Implement edit customer functionality
+      selectedCustomer.value = { ...customer };
+      showEditModal.value = true;
+    };
+
+    const closeEditModal = () => {
+      showEditModal.value = false;
+      selectedCustomer.value = null;
     };
 
     const confirmDeleteCustomer = async (intnr: string) => {
@@ -209,10 +221,10 @@ export default defineComponent({
         alert('Customer deleted successfully');
       } catch (error) {
         if (axios.isAxiosError(error)) {
-            alert('Failed to delete customer: ' + (error.response?.data.message || error.message));
-          } else {
-            alert('Failed to delete customer: ' + error);
-          }
+          alert('Failed to delete customer: ' + (error.response?.data.message || error.message));
+        } else {
+          alert('Failed to delete customer: ' + error);
+        }
       }
     };
 
@@ -222,13 +234,16 @@ export default defineComponent({
       searchQuery,
       filteredCustomers,
       sortTable,
-      showCreateModal,
+      showEditModal,
+      selectedCustomer,
       handleFileUpload,
       handleDrop,
       createCustomer,
       editCustomer,
+      closeEditModal,
       confirmDeleteCustomer,
       deleteCustomer,
+      fetchCustomers
     };
   },
 });

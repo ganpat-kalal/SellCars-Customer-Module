@@ -1,36 +1,36 @@
 <template>
-    <div class="modal" v-if="show">
+    <div class="modal" v-if="show && localCustomer">
         <div class="modal-content">
             <span class="close" @click="close">&times;</span>
             <h2>Edit Customer</h2>
             <form @submit.prevent="saveCustomer">
                 <div class="form-group">
                     <label for="first_name">First Name</label>
-                    <input type="text" v-model="customer.contact_persons[0].first_name" id="first_name" required />
+                    <input type="text" v-model="localCustomer.contact_persons[0].first_name" id="first_name" required />
                 </div>
                 <div class="form-group">
                     <label for="last_name">Last Name</label>
-                    <input type="text" v-model="customer.contact_persons[0].last_name" id="last_name" required />
+                    <input type="text" v-model="localCustomer.contact_persons[0].last_name" id="last_name" required />
                 </div>
                 <div class="form-group">
                     <label for="company_name">Company Name</label>
-                    <input type="text" v-model="customer.addresses[0].company_name" id="company_name" required />
+                    <input type="text" v-model="localCustomer.addresses[0].company_name" id="company_name" required />
                 </div>
                 <div class="form-group">
                     <label for="country">Country</label>
-                    <input type="text" v-model="customer.addresses[0].country" id="country" required />
+                    <input type="text" v-model="localCustomer.addresses[0].country" id="country" required />
                 </div>
                 <div class="form-group">
                     <label for="zip">Zip</label>
-                    <input type="text" v-model="customer.addresses[0].zip" id="zip" required />
+                    <input type="text" v-model="localCustomer.addresses[0].zip" id="zip" required />
                 </div>
                 <div class="form-group">
                     <label for="city">City</label>
-                    <input type="text" v-model="customer.addresses[0].city" id="city" required />
+                    <input type="text" v-model="localCustomer.addresses[0].city" id="city" required />
                 </div>
                 <div class="form-group">
                     <label for="street">Street</label>
-                    <input type="text" v-model="customer.addresses[0].street" id="street" required />
+                    <input type="text" v-model="localCustomer.addresses[0].street" id="street" required />
                 </div>
                 <button type="submit">Save</button>
             </form>
@@ -39,7 +39,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from 'vue';
+import { defineComponent, PropType, ref, watch } from 'vue';
 import axios from 'axios';
 import { Customer } from '@/types/Customer';
 
@@ -51,27 +51,48 @@ export default defineComponent({
             required: true
         },
         customer: {
-            type: Object as PropType<Customer>,
+            type: Object as PropType<Customer | null>,
             required: true
         }
     },
-    methods: {
-        close() {
-            this.$emit('close');
-        },
-        async saveCustomer() {
-            try {
-                await axios.put(`http://localhost:5000/api/customers/${this.customer.intnr}`, this.customer, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-                this.$emit('saved');
-                this.close();
-            } catch (error) {
-                alert('Failed to save customer: ' + error.message);
+    setup(props, { emit }) {
+        const localCustomer = ref<Customer | null>(null);
+
+        watch(props, (newProps) => {
+            if (newProps.customer) {
+                localCustomer.value = { ...newProps.customer };
             }
-        }
+        });
+
+        const close = () => {
+            emit('close');
+        };
+
+        const saveCustomer = async () => {
+            if (localCustomer.value) {
+                try {
+                    await axios.put(`http://localhost:5000/api/customers/${localCustomer.value.intnr}`, localCustomer.value, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    emit('saved');
+                    close();
+                } catch (error) {
+                    if (axios.isAxiosError(error)) {
+                        alert('Failed to save customer: ' + (error.response?.data.message || error.message));
+                    } else {
+                        alert('Failed to save customer: ' + error);
+                    }
+                }
+            }
+        };
+
+        return {
+            localCustomer,
+            close,
+            saveCustomer,
+        };
     }
 });
 </script>

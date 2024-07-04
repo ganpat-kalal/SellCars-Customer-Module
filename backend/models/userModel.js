@@ -1,21 +1,26 @@
-const mongoose = require('mongoose');
-const crypto = require('crypto');
+const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
+  first_name: {
+    type: String,
+    required: true,
+    maxlength: 50,
+  },
+  last_name: {
+    type: String,
+    required: true,
+    maxlength: 50,
+  },
   email: {
     type: String,
     required: true,
+    maxlength: 75,
     unique: true,
   },
-  password: {
+  password_hash: {
     type: String,
     required: true,
-    validate: {
-      validator: function(v) {
-        return v.length === 32;
-      },
-      message: props => `${props.value} is not exactly 32 characters!`
-    }
+    length: 32,
   },
   created_at: {
     type: Date,
@@ -27,4 +32,4 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model("User", userSchema);

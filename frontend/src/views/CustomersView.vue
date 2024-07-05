@@ -23,9 +23,18 @@
       <div class="search-bar">
         <input type="text" v-model="searchQuery" placeholder="Search by all columns" />
       </div>
-      <TableComponent :customers="filteredCustomers" :fields="fields" />
-      <edit-customer-modal :show="showEditModal" :customer="selectedCustomer" @close="closeEditModal"
-        @saved="fetchCustomers" />
+      <TableComponent 
+        :customers="filteredCustomers" 
+        :fields="fields" 
+        @edit-customer="editCustomer" 
+        @delete-customer="confirmDeleteCustomer"
+      />
+      <EditCustomerModal
+        :show="showEditModal" 
+        :customer="selectedCustomer" 
+        @close="closeEditModal"
+        @saved="fetchCustomers" 
+      />
     </main>
   </div>
 </template>

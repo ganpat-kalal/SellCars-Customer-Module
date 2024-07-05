@@ -41,8 +41,8 @@ const createCustomer = async (req, res) => {
 // Update a customer by ID
 const updateCustomer = async (req, res) => {
   try {
-    const updatedCustomer = await Customer.findByIdAndUpdate(
-      req.params.id,
+    const updatedCustomer = await Customer.findOneAndUpdate(
+      { intnr: req.params.intnr },
       req.body,
       { new: true }
     ).populate('contact_persons.address');

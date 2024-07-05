@@ -24,10 +24,10 @@
                     <td>{{ customer.addresses[0]?.zip }} / {{ customer.addresses[0]?.city }}</td>
                     <td>{{ customer.addresses[0]?.street }}</td>
                     <td>
-                        <button @click="editCustomer(customer)">
+                        <button @click="$emit('edit-customer', customer)">
                             <img :src="editIcon" alt="Edit" class="action-icon" />
                         </button>
-                        <button @click="confirmDeleteCustomer(customer.intnr)">
+                        <button @click="$emit('delete-customer', customer.intnr)">
                             <img :src="deleteIcon" alt="Delete" class="action-icon ml-1" />
                         </button>
                     </td>
@@ -153,5 +153,4 @@ button {
 button:focus {
   outline: none;
 }
-
 </style>

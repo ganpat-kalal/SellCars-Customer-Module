@@ -23,38 +23,9 @@
       <div class="search-bar">
         <input type="text" v-model="searchQuery" placeholder="Search by all columns" />
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th @click="sortTable('intnr')">#</th>
-            <th @click="sortTable('contact_persons.0.first_name')">First</th>
-            <th @click="sortTable('contact_persons.0.last_name')">Last</th>
-            <th @click="sortTable('addresses.0.company_name')">Company Name</th>
-            <th @click="sortTable('addresses.0.country')">Country</th>
-            <th @click="sortTable('addresses.0.zip')">Zip/City</th>
-            <th @click="sortTable('addresses.0.street')">Address</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="customer in filteredCustomers" :key="customer.intnr">
-            <td>{{ customer.intnr }}</td>
-            <td>{{ customer.contact_persons?.[0]?.first_name }}</td>
-            <td>{{ customer.contact_persons?.[0]?.last_name }}</td>
-            <td>{{ customer.addresses?.[0]?.company_name }}</td>
-            <td>{{ customer.addresses?.[0]?.country }}</td>
-            <td>{{ customer.addresses?.[0]?.zip }} / {{ customer.addresses?.[0]?.city }}</td>
-            <td>{{ customer.addresses?.[0]?.street }}</td>
-            <td>
-              <button @click="editCustomer(customer)">Edit</button>
-              <button @click="confirmDeleteCustomer(customer.intnr)">Delete</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <TableComponent :customers="filteredCustomers" :fields="fields" />
       <edit-customer-modal :show="showEditModal" :customer="selectedCustomer" @close="closeEditModal"
-        @saved="fetchCustomers">
-      </edit-customer-modal>
+        @saved="fetchCustomers" />
     </main>
   </div>
 </template>
@@ -64,19 +35,30 @@ import { defineComponent, ref, computed } from 'vue';
 import axios from 'axios';
 import { Customer } from '@/types/Customer';
 import EditCustomerModal from '@/components/EditCustomerModal.vue';
+import TableComponent from '@/components/TableComponent.vue';
 
 export default defineComponent({
   name: 'CustomersView',
   components: {
     EditCustomerModal,
+    TableComponent
   },
   setup() {
     const customers = ref<Customer[]>([]);
     const searchQuery = ref('');
-    const sortKey = ref('');
-    const sortAsc = ref(true);
     const showEditModal = ref(false);
     const selectedCustomer = ref<Customer | null>(null);
+
+    const fields = ref([
+      { key: 'intnr', label: '#' },
+      { key: 'contact_persons.0.first_name', label: 'First' },
+      { key: 'contact_persons.0.last_name', label: 'Last' },
+      { key: 'addresses.0.company_name', label: 'Company Name' },
+      { key: 'addresses.0.country', label: 'Country' },
+      { key: 'addresses.0.zip', label: 'Zip/City' },
+      { key: 'addresses.0.street', label: 'Address' },
+      { key: 'actions', label: 'Actions' }
+    ]);
 
     const fetchCustomers = async () => {
       try {
@@ -155,45 +137,15 @@ export default defineComponent({
       }
     };
 
-    const getValueByPath = (obj: any, path: string) => {
-      return path.split('.').reduce((acc, part) => acc && acc[part], obj);
-    };
-
     const filteredCustomers = computed(() => {
-      return customers.value
-        .filter((customer) => {
-          return (
-            customer.contact_persons?.[0]?.first_name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-            customer.contact_persons?.[0]?.last_name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-            customer.addresses?.[0]?.company_name.toLowerCase().includes(searchQuery.value.toLowerCase())
-          );
-        })
-        .sort((a, b) => {
-          if (sortKey.value) {
-            const aValue = getValueByPath(a, sortKey.value);
-            const bValue = getValueByPath(b, sortKey.value);
-            if (aValue === bValue) return 0;
-            if (aValue === undefined || aValue === null) return sortAsc.value ? -1 : 1;
-            if (bValue === undefined || bValue === null) return sortAsc.value ? 1 : -1;
-            return sortAsc.value ? (aValue > bValue ? 1 : -1) : (aValue < bValue ? 1 : -1);
-          }
-          return 0;
-        });
+      return customers.value.filter(customer => {
+        return (
+          customer.contact_persons?.[0]?.first_name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+          customer.contact_persons?.[0]?.last_name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+          customer.addresses?.[0]?.company_name.toLowerCase().includes(searchQuery.value.toLowerCase())
+        );
+      });
     });
-
-    const sortTable = (key: string) => {
-      if (sortKey.value === key) {
-        sortAsc.value = !sortAsc.value;
-      } else {
-        sortKey.value = key;
-        sortAsc.value = true;
-      }
-    };
-
-    const createCustomer = async () => {
-      // Implement create customer functionality
-      fetchCustomers();
-    };
 
     const editCustomer = (customer: Customer) => {
       selectedCustomer.value = { ...customer };
@@ -233,20 +185,20 @@ export default defineComponent({
 
     return {
       searchQuery,
+      customers,
+      fields,
       filteredCustomers,
-      sortTable,
       showEditModal,
       selectedCustomer,
       handleFileUpload,
       handleDrop,
-      createCustomer,
       editCustomer,
       closeEditModal,
       confirmDeleteCustomer,
       deleteCustomer,
       fetchCustomers
     };
-  },
+  }
 });
 </script>
 
@@ -314,34 +266,5 @@ export default defineComponent({
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th,
-td {
-  padding: 10px;
-  border: 1px solid #ccc;
-}
-
-th {
-  cursor: pointer;
-}
-
-th:hover {
-  background-color: #e0e0e0;
-}
-
-.modal {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: #fff;
-  padding: 20px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 </style>

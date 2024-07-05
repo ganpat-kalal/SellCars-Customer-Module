@@ -41,7 +41,7 @@
 <script lang="ts">
 import { defineComponent, PropType, ref, watch } from 'vue';
 import axios from 'axios';
-import { Customer } from '@/types/Customer';
+import { Customer } from '../types/Customer';
 
 export default defineComponent({
     name: 'EditCustomerModal',

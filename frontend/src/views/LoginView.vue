@@ -31,7 +31,7 @@ export default defineComponent({
         });
         localStorage.setItem('token', response.data.token);
         errorMessage.value = '';
-        window.location.href = '/customers';
+        window.location.href = '/customers-page';
       } catch (error) {
         errorMessage.value = 'Invalid username or password';
       }

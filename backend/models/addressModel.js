@@ -1,38 +1,41 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const addressSchema = new mongoose.Schema({
   company_name: {
     type: String,
-    required: true,
+    maxlength: 50,
   },
   country: {
     type: String,
-    required: true,
+    maxlength: 50,
   },
   city: {
     type: String,
-    required: true,
+    maxlength: 50,
   },
   zip: {
     type: String,
-    required: true,
-  },
-  street: {
-    type: String,
-    required: true,
-  },
-  email: {
-    type: String,
-    required: true,
-  },
-  phone: {
-    type: String,
-    required: true,
+    maxlength: 5,
   },
   fax: {
     type: String,
-    required: true,
+    maxlength: 20,
+    match: [/^\+?[0-9\s-]+$/, "Please use a valid fax number."],
+  },
+  phone: {
+    type: String,
+    maxlength: 20,
+    match: [/^\+?[0-9\s-]+$/, "Please use a valid phone number."],
+  },
+  street: {
+    type: String,
+    maxlength: 100,
+  },
+  email: {
+    type: String,
+    maxlength: 50,
+    match: [/^\S+@\S+\.\S+$/, "Please use a valid email address."],
   },
 });
 
-module.exports = mongoose.model('Address', addressSchema);
+module.exports = mongoose.model("Address", addressSchema);

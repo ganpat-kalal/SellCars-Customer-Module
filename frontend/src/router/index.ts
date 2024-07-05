@@ -15,7 +15,7 @@ const routes: Array<RouteRecordRaw> = [
     component: LoginView,
   },
   {
-    path: '/customers',
+    path: '/customers-page',
     name: 'Customers',
     component: CustomersView,
     meta: { requiresAuth: true },

@@ -1,12 +1,33 @@
-const Customer = require("../models/customerModel");
 const csv = require("csv-parser");
 const fs = require("fs");
+const Customer = require('../models/customerModel');
+const ContactPerson = require('../models/contactPersonModel');
+const Address = require('../models/addressModel');
 
+// Get all customers
 const getCustomers = async (req, res) => {
-  const customers = await Customer.find();
-  res.json(customers);
+  try {
+    const customers = await Customer.find();
+    res.status(200).json(customers);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
+// Get a single customer by ID
+const getCustomerById = async (req, res) => {
+  try {
+    const customer = await Customer.findById(req.params.id).populate('contact_persons.address');
+    if (!customer) {
+      return res.status(404).json({ message: 'Customer not found' });
+    }
+    res.status(200).json(customer);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Create a new customer
 const createCustomer = async (req, res) => {
   const customer = new Customer(req.body);
   try {
@@ -17,28 +38,32 @@ const createCustomer = async (req, res) => {
   }
 };
 
+// Update a customer by ID
 const updateCustomer = async (req, res) => {
   try {
-    const updatedCustomer = await Customer.findOneAndUpdate(
-      { intnr: req.params.intnr },
+    const updatedCustomer = await Customer.findByIdAndUpdate(
+      req.params.id,
       req.body,
       { new: true }
-    );
-    res.json(updatedCustomer);
+    ).populate('contact_persons.address');
+    if (!updatedCustomer) {
+      return res.status(404).json({ message: 'Customer not found' });
+    }
+    res.status(200).json(updatedCustomer);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 };
 
+// Delete a customer by ID
 const deleteCustomer = async (req, res) => {
   try {
-    const customer = await Customer.findOneAndDelete({
-      intnr: req.params.intnr,
-    });
+    const customer = await Customer.findById(req.params.id);
     if (!customer) {
-      return res.status(404).json({ message: "Customer not found" });
+      return res.status(404).json({ message: 'Customer not found' });
     }
-    res.json({ message: "Customer deleted" });
+    await customer.remove();
+    res.status(200).json({ message: 'Customer deleted' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

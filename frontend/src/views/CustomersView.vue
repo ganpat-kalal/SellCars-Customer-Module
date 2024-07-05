@@ -53,7 +53,8 @@
         </tbody>
       </table>
       <edit-customer-modal :show="showEditModal" :customer="selectedCustomer" @close="closeEditModal"
-        @saved="fetchCustomers"></edit-customer-modal>
+        @saved="fetchCustomers">
+      </edit-customer-modal>
     </main>
   </div>
 </template>
@@ -305,6 +306,7 @@ export default defineComponent({
 
 .search-bar {
   margin-bottom: 20px;
+  display: flex;
 }
 
 .search-bar input {

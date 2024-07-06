@@ -15,6 +15,7 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 import axios from 'axios';
+import { login } from '@/services/authService';
 
 export default defineComponent({
   name: 'LoginView',
@@ -25,15 +26,15 @@ export default defineComponent({
 
     const handleLogin = async () => {
       try {
-        const response = await axios.post('http://localhost:5000/api/users/login', {
-          email: username.value,
-          password: password.value,
-        });
-        localStorage.setItem('token', response.data.token);
-        errorMessage.value = '';
-        window.location.href = '/customers-page';
+        const response = await login(username.value, password.value);
+        if (response) {
+          errorMessage.value = '';
+          window.location.href = '/customers-page';
+        } else {
+          errorMessage.value = 'Invalid username or password';
+        }
       } catch (error) {
-        errorMessage.value = 'Invalid username or password';
+        errorMessage.value = 'Something went wrong. Please try again later.';
       }
     };
 

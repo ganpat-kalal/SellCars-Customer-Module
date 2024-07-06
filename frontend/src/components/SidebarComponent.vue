@@ -128,6 +128,12 @@ export default defineComponent({
     justify-content: space-between;
     height: 100vh;
     min-width: 250px;
+    flex: 0 0 250px;
+
+    @media (max-width: 963px) {
+        height: auto;
+        min-width: 100%;
+    }
 
     .user-section {
         p {

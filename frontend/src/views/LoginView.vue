@@ -9,13 +9,10 @@
         <div class="form-group">
           <input type="password" class="form-control mb-4" v-model="password" placeholder="Password" required />
         </div>
-        <div v-if="errorMessage" class="alert alert-danger p-1" role="alert">
-          {{ errorMessage }}
-        </div>
         <button type="submit" class="btn btn-primary">Login</button>
       </form>
+      <ToastComponent :message="errorMessage" type="alert" />
     </div>
-    <ToastComponent :message="errorMessage" type="alert" />
   </div>
 </template>
 
@@ -77,23 +74,16 @@ export default defineComponent({
     padding: 2rem 6rem 4rem 6rem;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     text-align: center;
+    width: 100%;
+    max-width: 500px;
 
     h3 {
       margin-bottom: 2rem;
       font-weight: 600;
     }
 
-    .form-group {
-      width: 300px;
-    }
-
     button {
       float: right;
-    }
-
-    p {
-      color: red;
-      margin-top: 10px;
     }
   }
 }

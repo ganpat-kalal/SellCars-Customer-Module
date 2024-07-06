@@ -153,13 +153,9 @@ export default defineComponent({
   display: flex;
   height: 100vh;
 
-
-  .header,
-  .footer {
-    background-color: #5065a8;
-    color: white;
-    padding: 1.5rem;
-    border-left: 1px solid #000;
+  @media (max-width: 961px) {
+    display: block;
+    height: auto;
   }
 
   .main-content-container {
@@ -167,10 +163,19 @@ export default defineComponent({
     flex-direction: column;
     width: 100%;
 
+    .header,
+    .footer {
+      background-color: #5065a8;
+      color: white;
+      padding: 1.5rem;
+      border-left: 1px solid #000;
+    }
+
     .main-content {
       flex-grow: 1;
       padding: 20px;
       background-color: #f0f0f0;
+      overflow-y: auto;
 
       h4 {
         margin: 1rem 0;

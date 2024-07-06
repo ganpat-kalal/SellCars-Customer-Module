@@ -16,11 +16,11 @@ const customerSchema = new mongoose.Schema({
   },
   contact_persons: {
     type: [contactPersonSchema],
-    default: [],
+    validate: [arrayMinLength, "At least one contact person is required"],
   },
   addresses: {
     type: [addressSchema],
-    default: [],
+    validate: [arrayMinLength, "At least one address is required"],
   },
   created_at: {
     type: Date,
@@ -32,10 +32,21 @@ const customerSchema = new mongoose.Schema({
   },
 });
 
-// Middleware to update the updated_at field on save
+function arrayMinLength(val) {
+  return val.length > 0;
+}
+
 customerSchema.pre("save", function (next) {
-  this.updated_at = Date.now();
-  next();
+  if (this.isNew && (!this.contact_persons.length || !this.addresses.length)) {
+    next(
+      new Error(
+        "Customer must have at least one contact person and one address"
+      )
+    );
+  } else {
+    this.updated_at = Date.now();
+    next();
+  }
 });
 
 module.exports = mongoose.model("Customer", customerSchema);

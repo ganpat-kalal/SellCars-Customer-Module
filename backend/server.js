@@ -23,7 +23,6 @@ app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/customers', require('./routes/customerRoutes'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {

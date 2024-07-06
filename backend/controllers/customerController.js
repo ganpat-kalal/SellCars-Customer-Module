@@ -1,8 +1,7 @@
 const csv = require("csv-parser");
 const fs = require("fs");
-const Customer = require('../models/customerModel');
-const ContactPerson = require('../models/contactPersonModel');
-const Address = require('../models/addressModel');
+const Customer = require("../models/customerModel");
+const { validateContactPerson, validateAddress } = require('../utils/validation');
 
 // Get all customers
 const getCustomers = async (req, res) => {
@@ -14,10 +13,10 @@ const getCustomers = async (req, res) => {
   }
 };
 
-// Get a single customer by ID
-const getCustomerById = async (req, res) => {
+// Get a single customer by Intnr
+const getCustomerByIntnr = async (req, res) => {
   try {
-    const customer = await Customer.findById(req.params.id).populate('contact_persons.address');
+    const customer = await Customer.findOne({ intnr: req.params.intnr }).populate('contact_persons.address');
     if (!customer) {
       return res.status(404).json({ message: 'Customer not found' });
     }
@@ -29,8 +28,33 @@ const getCustomerById = async (req, res) => {
 
 // Create a new customer
 const createCustomer = async (req, res) => {
-  const customer = new Customer(req.body);
   try {
+    const { contact_persons, addresses, ...customerData } = req.body;
+
+    if (!contact_persons || contact_persons.length === 0 || !addresses || addresses.length === 0) {
+      return res.status(400).json({ message: "Customer must have at least one contact person and one address" });
+    }
+
+    for (let contactPerson of contact_persons) {
+      const errors = validateContactPerson(contactPerson);
+      if (errors.length > 0) {
+        return res.status(400).json({ message: "Invalid contact person data", errors });
+      }
+    }
+
+    for (let address of addresses) {
+      const errors = validateAddress(address);
+      if (errors.length > 0) {
+        return res.status(400).json({ message: "Invalid address data", errors });
+      }
+    }
+
+    const customer = new Customer({
+      ...customerData,
+      contact_persons: contact_persons.map(cp => ({ ...cp, address: addresses[0]._id })),
+      addresses
+    });
+
     const newCustomer = await customer.save();
     res.status(201).json(newCustomer);
   } catch (err) {
@@ -38,16 +62,16 @@ const createCustomer = async (req, res) => {
   }
 };
 
-// Update a customer by ID
+// Update a customer by Intnr
 const updateCustomer = async (req, res) => {
   try {
     const updatedCustomer = await Customer.findOneAndUpdate(
       { intnr: req.params.intnr },
       req.body,
       { new: true }
-    ).populate('contact_persons.address');
+    ).populate("contact_persons.address");
     if (!updatedCustomer) {
-      return res.status(404).json({ message: 'Customer not found' });
+      return res.status(404).json({ message: "Customer not found!" });
     }
     res.status(200).json(updatedCustomer);
   } catch (err) {
@@ -55,70 +79,21 @@ const updateCustomer = async (req, res) => {
   }
 };
 
-// Delete a customer by ID
+// Delete a customer by Intnr
 const deleteCustomer = async (req, res) => {
   try {
-    const customer = await Customer.findById(req.params.id);
+    const customer = await Customer.findOne({ intnr: req.params.intnr });
+
     if (!customer) {
       return res.status(404).json({ message: 'Customer not found' });
     }
-    await customer.remove();
-    res.status(200).json({ message: 'Customer deleted' });
+
+    await Customer.deleteOne({ intnr: req.params.intnr });
+
+    res.status(200).json({ message: 'Customer deleted successfully' });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: 'Error deleting customer', error: err.message });
   }
-};
-
-const validateContactPerson = (contactPerson) => {
-  const errors = [];
-
-  // Validate contact persons
-  if (!contactPerson.first_name) {
-    errors.push("First name is required");
-  }
-  if (!contactPerson.last_name) {
-    errors.push("Last name is required");
-  }
-  if (
-    contactPerson.email &&
-    !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(contactPerson.email)
-  ) {
-    errors.push("Invalid email format");
-  }
-  if (
-    contactPerson.mobile_phone &&
-    !/^\d{10}$/.test(contactPerson.mobile_phone)
-  ) {
-    errors.push("Invalid phone number format");
-  }
-
-  return errors;
-};
-
-const validateAddress = (address) => {
-  const errors = [];
-
-  // Validate addresses
-  if (!address.company_name) {
-    errors.push("Company name is required");
-  }
-  if (!address.country) {
-    errors.push("Country is required");
-  }
-  if (!address.city) {
-    errors.push("City is required");
-  }
-  if (!address.zip) {
-    errors.push("Zip code is required");
-  }
-  if (
-    address.email &&
-    !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(address.email)
-  ) {
-    errors.push("Invalid address email format");
-  }
-
-  return errors;
 };
 
 const uploadCustomers = async (req, res) => {
@@ -142,6 +117,7 @@ const uploadCustomers = async (req, res) => {
             email: row["E"],
             mobile_phone: row["F"],
             birth_date: row["G"],
+            address: null, // This will be set after creating the address
           },
         ],
         addresses: [
@@ -158,14 +134,13 @@ const uploadCustomers = async (req, res) => {
         ],
       };
 
-      // Validate customer
-      const validationErrors = validateContactPerson(
-        customer.contact_persons[0]
-      );
-      if (validationErrors.length > 0) {
+      const contactPersonErrors = validateContactPerson(customer.contact_persons[0]);
+      const addressErrors = validateAddress(customer.addresses[0]);
+
+      if (contactPersonErrors.length > 0 || addressErrors.length > 0) {
         errors.push({
           customer,
-          errors: validationErrors,
+          errors: [...contactPersonErrors, ...addressErrors],
         });
       } else {
         customers.push(customer);
@@ -191,7 +166,9 @@ const uploadCustomers = async (req, res) => {
             continue;
           }
 
-          await Customer.create(customer);
+          const createdCustomer = await Customer.create(customer);
+          createdCustomer.contact_persons[0].address = createdCustomer.addresses[0]._id;
+          await createdCustomer.save();
         }
 
         if (errors.length) {
@@ -270,10 +247,10 @@ const uploadContactPersons = async (req, res) => {
 
         res
           .status(201)
-          .json({ message: "Contact persons uploaded successfully" });
+          .json({ message: "Contact persons uploaded successfully!" });
       } catch (err) {
         res.status(500).json({
-          message: "Error uploading contact persons",
+          message: "Error uploading contact persons!",
           error: err.message,
         });
       }
@@ -282,7 +259,7 @@ const uploadContactPersons = async (req, res) => {
 
 const uploadAddresses = async (req, res) => {
   if (!req.file) {
-    return res.status(400).json({ message: "No file uploaded" });
+    return res.status(400).json({ message: "No file uploaded!" });
   }
 
   const addresses = [];
@@ -321,7 +298,7 @@ const uploadAddresses = async (req, res) => {
       try {
         if (errors.length > 0) {
           return res.status(400).json({
-            message: "Validation errors occurred",
+            message: "Validation errors occurred!",
             errors,
           });
         }
@@ -340,11 +317,11 @@ const uploadAddresses = async (req, res) => {
           }
         }
 
-        res.status(201).json({ message: "Addresses uploaded successfully" });
+        res.status(201).json({ message: "Addresses uploaded successfully!" });
       } catch (err) {
         res
           .status(500)
-          .json({ message: "Error uploading addresses", error: err.message });
+          .json({ message: "Error uploading addresses!", error: err.message });
       }
     });
 };

@@ -130,23 +130,23 @@ export default defineComponent({
 .customer-module {
   display: flex;
   height: 100vh;
-}
 
-.main-content {
-  flex-grow: 1;
-  padding: 20px;
-  background-color: #f0f0f0;
-}
+  .main-content {
+    flex-grow: 1;
+    padding: 20px;
+    background-color: #f0f0f0;
 
-.search-bar {
-  margin-bottom: 20px;
-  display: flex;
-}
+    .search-bar {
+      margin-bottom: 20px;
+      display: flex;
 
-.search-bar input {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+      .search-bar input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+    }
+  }
 }
 </style>

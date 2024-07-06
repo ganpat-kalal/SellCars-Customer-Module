@@ -8,8 +8,8 @@
                         <span class="header-content">
                             {{ field.label }}
                             <img v-if="field.key !== 'actions'"
-                                :src="sortKey === field.key && sortAsc ? sortUpIcon : sortDownIcon" :alt="'Sort' + field.label"
-                                class="sort-icon" />
+                                :src="sortKey === field.key && sortAsc ? sortUpIcon : sortDownIcon"
+                                :alt="'Sort' + field.label" class="sort-icon" />
                         </span>
                     </th>
                 </tr>
@@ -113,44 +113,44 @@ export default defineComponent({
 <style lang="scss" scoped>
 .table-responsive {
     margin: 20px 0;
-}
 
-thead {
-    border-bottom: 2px solid #a9a9a9;
-}
+    thead {
+        border-bottom: 2px solid #a9a9a9;
 
-th {
-    cursor: pointer;
-    user-select: none;
-}
+        th {
+            cursor: pointer;
+            user-select: none;
 
-.header-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
+            .header-content {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
 
-.sort-icon {
-    margin-left: 5px;
-}
+                .sort-icon {
+                    margin-left: 5px;
+                }
+            }
+        }
+    }
 
-.action-icon {
-  width: 20px;
-  height: 20px;
-}
+    button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
 
-.ml-1 {
-    margin-left: 1rem;
-}
+        &:focus {
+            outline: none;
+        }
 
-button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-}
+        .action-icon {
+            width: 20px;
+            height: 20px;
+        }
 
-button:focus {
-  outline: none;
+        .ml-1 {
+            margin-left: 1rem;
+        }
+    }
 }
 </style>

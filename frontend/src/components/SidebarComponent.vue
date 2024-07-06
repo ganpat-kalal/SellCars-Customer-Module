@@ -81,40 +81,41 @@ export default defineComponent({
     background-color: #5065a8;
     color: white;
     padding: 20px;
-}
 
-.sidebar h2 {
-    margin-top: 0;
-}
+    h2 {
+        margin-top: 0;
+    }
 
-.sidebar .upload-section {
-    margin-top: 20px;
-}
+    .upload-section {
+        margin-top: 20px;
 
-.sidebar .upload-area {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 80px;
-    margin-bottom: 10px;
-    background-color: #3b4c75;
-    color: white;
-    border: 2px dashed white;
-    position: relative;
-}
+        .upload-area {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 80px;
+            margin-bottom: 10px;
+            background-color: #3b4c75;
+            color: white;
+            border: 2px dashed white;
+            position: relative;
 
-.sidebar .upload-area input[type="file"] {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    cursor: pointer;
-}
+            &:hover {
+                background-color: #2a3654;
+            }
 
-.sidebar .upload-area:hover {
-    background-color: #2a3654;
+            input[type="file"] {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                opacity: 0;
+                cursor: pointer;
+
+            }
+        }
+    }
 }
 </style>

@@ -37,6 +37,8 @@
       <!-- Footer end -->
     </div>
     <!-- Main content container end -->
+    <ToastComponent :message="errorMessage" type="alert" />
+    <ToastComponent :message="successMessage" type="success" />
   </div>
 </template>
 
@@ -48,19 +50,23 @@ import { Customer } from '@/types/Customer';
 import SidebarComponent from '@/components/SidebarComponent.vue';
 import EditCustomerModal from '@/components/EditCustomerModal.vue';
 import TableComponent from '@/components/TableComponent.vue';
+import ToastComponent from '@/components/ToastComponent.vue';
 
 export default defineComponent({
   name: 'CustomersView',
   components: {
     SidebarComponent,
     EditCustomerModal,
-    TableComponent
+    TableComponent,
+    ToastComponent
   },
   setup() {
     const customers = ref<Customer[]>([]);
     const searchQuery = ref('');
     const showEditModal = ref(false);
     const selectedCustomer = ref<Customer | null>(null);
+    const errorMessage = ref('');
+    const successMessage = ref('');
 
     const fields = ref([
       { key: 'intnr', label: '#' },
@@ -81,7 +87,7 @@ export default defineComponent({
           localStorage.removeItem('token');
           window.location.href = '/login';
         } else {
-          console.error('Unexpected error', error);
+          errorMessage.value = 'Unexpected error: ' + error;
         }
       }
     };
@@ -111,12 +117,12 @@ export default defineComponent({
         try {
           await deleteCustomer(intnr);
           fetchCustomersData();
-          alert('Customer deleted successfully');
+          successMessage.value = 'Customer deleted successfully!';
         } catch (error) {
           if (axios.isAxiosError(error)) {
-            alert('Failed to delete customer: ' + (error.response?.data.message || error.message));
+            errorMessage.value = 'Failed to delete customer: ' + (error.response?.data.message || error.message);
           } else {
-            alert('Failed to delete customer: ' + error);
+            errorMessage.value = 'Failed to delete customer: ' + error;
           }
         }
       }
@@ -134,7 +140,9 @@ export default defineComponent({
       editCustomer,
       closeEditModal,
       confirmDeleteCustomer,
-      fetchCustomersData
+      fetchCustomersData,
+      errorMessage,
+      successMessage
     };
   }
 });

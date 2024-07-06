@@ -23,6 +23,7 @@
             <button class="logout-button" @click="userLogout()">Logout</button>
         </div>
     </aside>
+    <ToastComponent :message="errorMessage" type="alert" />
 </template>
 
 <script lang="ts">
@@ -30,13 +31,18 @@ import { defineComponent, ref, onMounted } from 'vue';
 import axios from 'axios';
 import { uploadFile } from '@/services/customerService';
 import { getCurrentUser, logOut } from '@/services/authService';
+import ToastComponent from '@/components/ToastComponent.vue';
 
 export default defineComponent({
     name: 'SidebarComponent',
+    components: {
+        ToastComponent
+    },
     emits: ['file-uploaded'],
     setup(_, { emit }) {
         const userName = ref('');
         const lastLogin = ref('');
+        const errorMessage = ref('');
 
         const setCurrentUser = () => {
             const user = getCurrentUser();
@@ -58,11 +64,12 @@ export default defineComponent({
 
         const handleDrop = async (event: DragEvent, type: string) => {
             event.preventDefault();
+            errorMessage.value = '';
             const files = event.dataTransfer?.files;
             if (files && files[0]) {
                 await processUploads(files, type);
             } else {
-                alert('No files found');
+                errorMessage.value = 'No files found!';
             }
         };
 
@@ -72,24 +79,24 @@ export default defineComponent({
             if (files && files[0]) {
                 await processUploads(files, type);
             } else {
-                alert('No files found');
+                errorMessage.value = 'No files found!';
             }
         };
 
         const processUploads = async (files: FileList, type: string) => {
             if (files[0].size > 500 * 1024) {
-                alert('File size exceeds the limit of 500 KB');
+                errorMessage.value = 'File size exceeds the limit of 500 KB!';
                 return;
             }
             try {
                 await uploadFile(type, files[0]);
                 emit('file-uploaded');
-                alert('File uploaded successfully');
+                errorMessage.value = 'File uploaded successfully';
             } catch (error) {
                 if (axios.isAxiosError(error)) {
-                    alert('File upload failed: ' + (error.response?.data.message || error.message));
+                    errorMessage.value = 'File upload failed: ' + (error.response?.data.message || error.message);
                 } else {
-                    alert('File upload failed: ' + error);
+                    errorMessage.value = 'File upload failed: ' + error;
                 }
             }
         };
@@ -104,7 +111,8 @@ export default defineComponent({
             processUploads,
             userName,
             lastLogin,
-            userLogout
+            userLogout,
+            errorMessage
         };
     },
 });

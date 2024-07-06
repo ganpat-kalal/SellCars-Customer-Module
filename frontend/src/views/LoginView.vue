@@ -1,14 +1,21 @@
 <template>
   <div class="login-container">
     <div class="login-box">
-      <h2>SellCars</h2>
+      <h3>SellCars</h3>
       <form @submit.prevent="handleLogin">
-        <input type="text" v-model="username" placeholder="Username" required />
-        <input type="password" v-model="password" placeholder="Password" required />
-        <button type="submit">Login</button>
+        <div class="form-group">
+          <input type="text" class="form-control mb-3" v-model="username" placeholder="Username" required />
+        </div>
+        <div class="form-group">
+          <input type="password" class="form-control mb-4" v-model="password" placeholder="Password" required />
+        </div>
+        <div v-if="errorMessage" class="alert alert-danger p-1" role="alert">
+          {{ errorMessage }}
+        </div>
+        <button type="submit" class="btn btn-primary">Login</button>
       </form>
-      <p v-if="errorMessage">{{ errorMessage }}</p>
     </div>
+    <ToastComponent :message="errorMessage" type="alert" />
   </div>
 </template>
 
@@ -16,9 +23,13 @@
 import { defineComponent, ref } from 'vue';
 import axios from 'axios';
 import { login } from '@/services/authService';
+import ToastComponent from '@/components/ToastComponent.vue';
 
 export default defineComponent({
   name: 'LoginView',
+  components: {
+    ToastComponent
+  },
   setup() {
     const username = ref('');
     const password = ref('');
@@ -26,6 +37,7 @@ export default defineComponent({
 
     const handleLogin = async () => {
       try {
+        errorMessage.value = '';
         const response = await login(username.value, password.value);
         if (response) {
           errorMessage.value = '';
@@ -35,9 +47,9 @@ export default defineComponent({
         }
       } catch (error) {
         if (axios.isAxiosError(error)) {
-          errorMessage.value = 'Failed to delete customer: ' + (error.response?.data.message || error.message);
+          errorMessage.value = 'Failed to login: ' + (error.response?.data.message || error.message);
         } else {
-          errorMessage.value = 'Failed to delete customer: ' + error;
+          errorMessage.value = 'Failed to login: ' + error;
         }
       }
     };
@@ -62,39 +74,21 @@ export default defineComponent({
 
   .login-box {
     background-color: #f0f0f0;
-    padding: 2rem 7rem 6rem 7rem;
+    padding: 2rem 6rem 4rem 6rem;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     text-align: center;
-    width: 20%;
-    height: 30%;
 
-    h2 {
+    h3 {
       margin-bottom: 2rem;
+      font-weight: 600;
     }
 
-    input {
-      display: block;
-      width: -webkit-fill-available;
-      padding: 10px;
-      margin-bottom: 20px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
+    .form-group {
+      width: 300px;
     }
 
     button {
-      width: 80px;
-      padding: 10px;
-      margin-top: 5px;
-      background-color: #0056b3;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
       float: right;
-    }
-
-    button:hover {
-      background-color: #004494;
     }
 
     p {

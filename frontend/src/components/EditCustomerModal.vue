@@ -54,15 +54,20 @@
       </div>
     </div>
   </div>
+  <ToastComponent :message="errorMessage" type="alert" />
 </template>
 
 <script lang="ts">
 import { defineComponent, PropType, ref, watch } from 'vue';
 import axios from 'axios';
 import { Customer } from '../types/Customer';
+import ToastComponent from '@/components/ToastComponent.vue';
 
 export default defineComponent({
   name: 'EditCustomerModal',
+  components: {
+    ToastComponent
+  },
   props: {
     show: {
       type: Boolean,
@@ -76,12 +81,13 @@ export default defineComponent({
   emits: ['close', 'saved'],
   setup(props, { emit }) {
     const localCustomer = ref<Customer | null>(null);
+    const errorMessage = ref('');
 
     watch(
       () => props.customer,
       (newCustomer) => {
         if (newCustomer) {
-          localCustomer.value = JSON.parse(JSON.stringify(newCustomer)); // Deep copy to avoid reference issues
+          localCustomer.value = JSON.parse(JSON.stringify(newCustomer));
         }
       },
       { immediate: true }
@@ -94,6 +100,7 @@ export default defineComponent({
     const saveCustomer = async () => {
       if (localCustomer.value) {
         try {
+          errorMessage.value = '';
           await axios.put(`http://localhost:5000/api/customers/${localCustomer.value.intnr}`, localCustomer.value, {
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -103,9 +110,9 @@ export default defineComponent({
           close();
         } catch (error) {
           if (axios.isAxiosError(error)) {
-            alert('Failed to save customer: ' + (error.response?.data.message || error.message));
+            errorMessage.value = 'Failed to save customer: ' + (error.response?.data.message || error.message);
           } else {
-            alert('Failed to save customer: ' + error);
+            errorMessage.value = 'Failed to save customer: ' + error;
           }
         }
       }
@@ -115,6 +122,7 @@ export default defineComponent({
       localCustomer,
       close,
       saveCustomer,
+      errorMessage
     };
   }
 });

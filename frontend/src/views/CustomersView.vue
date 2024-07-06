@@ -18,7 +18,7 @@
 
       <!-- Edit Customer Modal start -->
       <EditCustomerModal :show="showEditModal" :customer="selectedCustomer" @close="closeEditModal"
-        @saved="fetchCustomers" />
+        @saved="fetchCustomersData" />
       <!-- Edit Customer Modal end -->
 
     </main>
@@ -75,9 +75,9 @@ export default defineComponent({
     const filteredCustomers = computed(() => {
       return customers.value.filter(customer => {
         return (
-          customer.contact_persons?.[0]?.first_name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-          customer.contact_persons?.[0]?.last_name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-          customer.addresses?.[0]?.company_name.toLowerCase().includes(searchQuery.value.toLowerCase())
+          customer?.contact_persons?.[0]?.first_name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+          customer?.contact_persons?.[0]?.last_name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+          customer?.addresses?.[0]?.company_name.toLowerCase().includes(searchQuery.value.toLowerCase())
         );
       });
     });
@@ -120,8 +120,7 @@ export default defineComponent({
       editCustomer,
       closeEditModal,
       confirmDeleteCustomer,
-      deleteCustomer,
-      fetchCustomers
+      fetchCustomersData
     };
   }
 });

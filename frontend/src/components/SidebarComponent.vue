@@ -20,7 +20,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from 'vue';
+import { defineComponent } from 'vue';
 import axios from 'axios';
 import { uploadFile } from '@/services/customerService';
 

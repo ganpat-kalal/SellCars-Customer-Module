@@ -34,7 +34,11 @@ export default defineComponent({
           errorMessage.value = 'Invalid username or password';
         }
       } catch (error) {
-        errorMessage.value = 'Something went wrong. Please try again later.';
+        if (axios.isAxiosError(error)) {
+          errorMessage.value = 'Failed to delete customer: ' + (error.response?.data.message || error.message);
+        } else {
+          errorMessage.value = 'Failed to delete customer: ' + error;
+        }
       }
     };
 

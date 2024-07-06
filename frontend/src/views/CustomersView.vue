@@ -4,25 +4,39 @@
     <SidebarComponent @file-uploaded="fetchCustomersData" />
     <!-- Sidebar Component end -->
 
-    <!-- Main component start -->
-    <main class="main-content">
-      <h1>Customers</h1>
-      <div class="search-bar">
-        <input type="text" v-model="searchQuery" placeholder="Search by all columns" />
+    <!-- Main content container -->
+    <div class="main-content-container">
+      <!-- Header start -->
+      <div class="header">
       </div>
+      <!-- Header end -->
 
-      <!-- Table Component start -->
-      <TableComponent :customers="filteredCustomers" :fields="fields" @edit-customer="editCustomer"
-        @delete-customer="confirmDeleteCustomer" />
-      <!-- Table Component end -->
+      <!-- Main component start -->
+      <main class="main-content">
+        <h4>Customers</h4>
+        <div class="search-bar">
+          <input type="text" v-model="searchQuery" placeholder="Search by all columns" />
+        </div>
 
-      <!-- Edit Customer Modal start -->
-      <EditCustomerModal :show="showEditModal" :customer="selectedCustomer" @close="closeEditModal"
-        @saved="fetchCustomersData" />
-      <!-- Edit Customer Modal end -->
+        <!-- Table Component start -->
+        <TableComponent :customers="filteredCustomers" :fields="fields" @edit-customer="editCustomer"
+          @delete-customer="confirmDeleteCustomer" />
+        <!-- Table Component end -->
 
-    </main>
-    <!-- Main component end -->
+        <!-- Edit Customer Modal start -->
+        <EditCustomerModal :show="showEditModal" :customer="selectedCustomer" @close="closeEditModal"
+          @saved="fetchCustomersData" />
+        <!-- Edit Customer Modal end -->
+
+      </main>
+      <!-- Main component end -->
+
+      <!-- Footer start -->
+      <div class="footer">
+      </div>
+      <!-- Footer end -->
+    </div>
+    <!-- Main content container end -->
   </div>
 </template>
 
@@ -131,20 +145,41 @@ export default defineComponent({
   display: flex;
   height: 100vh;
 
-  .main-content {
-    flex-grow: 1;
-    padding: 20px;
-    background-color: #f0f0f0;
 
-    .search-bar {
-      margin-bottom: 20px;
-      display: flex;
+  .header,
+  .footer {
+    background-color: #5065a8;
+    color: white;
+    padding: 1.5rem;
+    border-left: 1px solid #000;
+  }
 
-      input {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
+  .main-content-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+
+    .main-content {
+      flex-grow: 1;
+      padding: 20px;
+      background-color: #f0f0f0;
+
+      h4 {
+        margin: 1rem 0;
+        font-weight: 600;
+        color: #808080;
+      }
+
+      .search-bar {
+        margin-bottom: 20px;
+        display: flex;
+
+        input {
+          width: 100%;
+          padding: 10px;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+        }
       }
     }
   }

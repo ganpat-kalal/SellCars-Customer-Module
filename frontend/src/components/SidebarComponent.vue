@@ -1,8 +1,11 @@
 <template>
     <aside class="sidebar">
-        <h2>{{ userName }}</h2>
-        <p>Last login: {{ lastLogin }}</p>
+        <div class="user-section">
+            <h4>{{ userName }}</h4>
+            <p>Last login: {{ lastLogin }}</p>
+        </div>
         <div class="upload-section">
+            <h5 class="mb-4">Customer CSV uploads</h5>
             <div class="upload-area" @drop.prevent="handleDrop($event, 'customers')" @dragover.prevent>
                 <p>Upload customer</p>
                 <input type="file" @change="handleFileUpload($event, 'customers')" accept=".csv" />
@@ -16,8 +19,8 @@
                 <input type="file" @change="handleFileUpload($event, 'addresses')" accept=".csv" />
             </div>
         </div>
-        <div>
-            <button @click="userLogout()">Logout</button>
+        <div class="logout-section">
+            <button class="logout-button" @click="userLogout()">Logout</button>
         </div>
     </aside>
 </template>
@@ -25,7 +28,6 @@
 <script lang="ts">
 import { defineComponent, ref, onMounted } from 'vue';
 import axios from 'axios';
-import { format } from 'date-fns';
 import { uploadFile } from '@/services/customerService';
 import { getCurrentUser, logOut } from '@/services/authService';
 
@@ -40,7 +42,13 @@ export default defineComponent({
             const user = getCurrentUser();
             if (user) {
                 userName.value = `${user.first_name} ${user.last_name}`;
-                lastLogin.value = user.updated_at ? format(new Date(user.updated_at), 'yyyy.MM.dd HH:mm:ss') : '';
+                if (user.updated_at) {
+                    const date = new Date(user.updated_at);
+                    const formattedDate = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}`;
+                    lastLogin.value = formattedDate;
+                } else {
+                    lastLogin.value = '';
+                }
             }
         };
 
@@ -107,28 +115,33 @@ export default defineComponent({
     background-color: #5065a8;
     color: white;
     padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100vh;
+    min-width: 250px;
 
-    h2 {
-        margin-top: 0;
+    .user-section {
+        p {
+            font-size: 14px;
+        }
     }
 
     .upload-section {
-        margin-top: 20px;
-
         .upload-area {
             display: flex;
-            align-items: center;
             justify-content: center;
             width: 100%;
-            height: 80px;
+            height: 120px;
             margin-bottom: 10px;
-            background-color: #3b4c75;
-            color: white;
-            border: 2px dashed white;
+            color: #3b4c75;
+            background-color: white;
             position: relative;
+            border-radius: 2px;
+            padding-top: 1.5rem;
 
             &:hover {
-                background-color: #2a3654;
+                box-shadow: 0 0 10px 0 rgba(0, 0, 0, 1);
             }
 
             input[type="file"] {
@@ -139,6 +152,22 @@ export default defineComponent({
                 height: 100%;
                 opacity: 0;
                 cursor: pointer;
+            }
+        }
+    }
+
+    .logout-section {
+        .logout-button {
+            width: 100%;
+            padding: 10px;
+            background-color: red;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+
+            &:hover {
+                background-color: darkred;
             }
         }
     }

@@ -27,7 +27,7 @@ exports.login = async (req, res) => {
     
     user.updated_at = Date.now();
     await user.save();
-    res.json({ token });
+    res.json({ token, user });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }

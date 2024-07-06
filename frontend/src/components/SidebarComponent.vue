@@ -1,7 +1,7 @@
 <template>
     <aside class="sidebar">
-        <h2>Customer name</h2>
-        <p>Last login: 2022.05.15 14:25:25</p>
+        <h2>{{ userName }}</h2>
+        <p>Last login: {{ lastLogin }}</p>
         <div class="upload-section">
             <div class="upload-area" @drop.prevent="handleDrop($event, 'customers')" @dragover.prevent>
                 <p>Upload customer</p>
@@ -16,18 +16,38 @@
                 <input type="file" @change="handleFileUpload($event, 'addresses')" accept=".csv" />
             </div>
         </div>
+        <div>
+            <button @click="userLogout()">Logout</button>
+        </div>
     </aside>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, ref, onMounted } from 'vue';
 import axios from 'axios';
+import { format } from 'date-fns';
 import { uploadFile } from '@/services/customerService';
+import { getCurrentUser, logOut } from '@/services/authService';
 
 export default defineComponent({
     name: 'SidebarComponent',
     emits: ['file-uploaded'],
     setup(_, { emit }) {
+        const userName = ref('');
+        const lastLogin = ref('');
+
+        const setCurrentUser = () => {
+            const user = getCurrentUser();
+            if (user) {
+                userName.value = `${user.first_name} ${user.last_name}`;
+                lastLogin.value = user.updated_at ? format(new Date(user.updated_at), 'yyyy.MM.dd HH:mm:ss') : '';
+            }
+        };
+
+        onMounted(() => {
+            setCurrentUser();
+        });
+
         const handleDrop = async (event: DragEvent, type: string) => {
             event.preventDefault();
             const files = event.dataTransfer?.files;
@@ -66,10 +86,17 @@ export default defineComponent({
             }
         };
 
+        const userLogout = async () => {
+            await logOut();
+        };
+
         return {
             handleDrop,
             handleFileUpload,
-            processUploads
+            processUploads,
+            userName,
+            lastLogin,
+            userLogout
         };
     },
 });
@@ -77,7 +104,6 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .sidebar {
-    width: 250px;
     background-color: #5065a8;
     color: white;
     padding: 20px;
@@ -113,7 +139,6 @@ export default defineComponent({
                 height: 100%;
                 opacity: 0;
                 cursor: pointer;
-
             }
         }
     }

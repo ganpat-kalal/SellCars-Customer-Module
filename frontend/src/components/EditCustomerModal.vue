@@ -73,6 +73,7 @@ export default defineComponent({
       required: true
     }
   },
+  emits: ['close', 'saved'],
   setup(props, { emit }) {
     const localCustomer = ref<Customer | null>(null);
 

@@ -39,7 +39,7 @@ export default defineComponent({
                 showToast.value = true;
                 setTimeout(() => {
                     showToast.value = false;
-                }, 3000);
+                }, 10000);
             }
         });
 
@@ -78,7 +78,7 @@ export default defineComponent({
 });
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .toast-container {
     z-index: 1050;
 }

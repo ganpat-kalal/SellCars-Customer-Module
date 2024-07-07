@@ -24,6 +24,7 @@
         </div>
     </aside>
     <ToastComponent :message="errorMessage" type="alert" />
+    <ToastComponent :message="successMessage" type="success" />
 </template>
 
 <script lang="ts">
@@ -43,6 +44,7 @@ export default defineComponent({
         const userName = ref('');
         const lastLogin = ref('');
         const errorMessage = ref('');
+        const successMessage = ref('');
 
         const setCurrentUser = () => {
             const user = getCurrentUser();
@@ -74,6 +76,7 @@ export default defineComponent({
         };
 
         const handleFileUpload = async (event: Event, type: string) => {
+            errorMessage.value = '';
             const target = event.target as HTMLInputElement;
             const files = target?.files;
             if (files && files[0]) {
@@ -84,15 +87,18 @@ export default defineComponent({
         };
 
         const processUploads = async (files: FileList, type: string) => {
+            errorMessage.value = '';
             if (files[0].size > 500 * 1024) {
                 errorMessage.value = 'File size exceeds the limit of 500 KB!';
                 return;
             }
             try {
+                errorMessage.value = '';
                 await uploadFile(type, files[0]);
                 emit('file-uploaded');
-                errorMessage.value = 'File uploaded successfully';
+                successMessage.value = 'Customers uploaded successfully!';
             } catch (error) {
+                errorMessage.value = '';
                 if (axios.isAxiosError(error)) {
                     errorMessage.value = 'File upload failed: ' + (error.response?.data.message || error.message);
                 } else {
@@ -112,7 +118,8 @@ export default defineComponent({
             userName,
             lastLogin,
             userLogout,
-            errorMessage
+            errorMessage,
+            successMessage
         };
     },
 });

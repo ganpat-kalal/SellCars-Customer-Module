@@ -150,7 +150,7 @@ const uploadCustomers = async (req, res) => {
       try {
         if (errors.length > 0) {
           return res.status(400).json({
-            message: "Validation errors occurred",
+            message: "Validation errors occurred!",
             errors,
           });
         }
@@ -224,7 +224,7 @@ const uploadContactPersons = async (req, res) => {
       try {
         if (errors.length > 0) {
           return res.status(400).json({
-            message: "Validation errors occurred",
+            message: "Validation errors occurred!",
             errors,
           });
         }
@@ -328,6 +328,7 @@ const uploadAddresses = async (req, res) => {
 
 module.exports = {
   getCustomers,
+  getCustomerByIntnr,
   createCustomer,
   updateCustomer,
   deleteCustomer,

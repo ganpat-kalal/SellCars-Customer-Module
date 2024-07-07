@@ -23,12 +23,12 @@
                     <td>{{ customer.addresses[0]?.country }}</td>
                     <td>{{ customer.addresses[0]?.zip }} / {{ customer.addresses[0]?.city }}</td>
                     <td>{{ customer.addresses[0]?.street }}</td>
-                    <td>
+                    <td class="text-center">
                         <button @click="$emit('edit-customer', customer)">
                             <img :src="editIcon" alt="Edit" class="action-icon" />
                         </button>
                         <button @click="$emit('delete-customer', customer.intnr)">
-                            <img :src="deleteIcon" alt="Delete" class="action-icon ml-1" />
+                            <img :src="deleteIcon" alt="Delete" class="action-icon ml-2" />
                         </button>
                     </td>
                 </tr>
@@ -148,8 +148,8 @@ export default defineComponent({
             height: 20px;
         }
 
-        .ml-1 {
-            margin-left: 1rem;
+        .ml-2 {
+            margin-left: 1.5rem;
         }
     }
 }

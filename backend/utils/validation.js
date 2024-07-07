@@ -17,7 +17,7 @@ const validateContactPerson = (contactPerson) => {
     }
     if (
         contactPerson.mobile_phone &&
-        !/^\d{20}$/.test(contactPerson.mobile_phone)
+        !/^\d{7,15}$/.test(contactPerson.mobile_phone)
     ) {
         errors.push("Invalid phone number format!");
     }

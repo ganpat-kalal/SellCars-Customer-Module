@@ -88,7 +88,7 @@
 <script lang="ts">
 import { defineComponent, PropType, ref, watch, computed } from 'vue';
 import axios from 'axios';
-import { Customer } from '../types/Customer';
+import { Customer } from '../../types/Customer';
 import { updateCustomer } from '@/services/customerService';
 import ToastComponent from '@/components/ToastComponent.vue';
 
@@ -147,7 +147,7 @@ export default defineComponent({
       if (localCustomer.value && isFormValid.value) {
         try {
           errorMessage.value = '';
-          const res = await updateCustomer(localCustomer.value);
+          await updateCustomer(localCustomer.value);
           successMessage.value = 'Customer updated successfully!';
           emit('saved');
           close();

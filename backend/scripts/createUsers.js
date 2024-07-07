@@ -2,15 +2,16 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const User = require("../models/userModel");
 const crypto = require("crypto");
+const config = require('../config/config');
 
 // Load environment variables from .env file
 dotenv.config({ path: require("path").resolve(__dirname, "../.env") });
 
 // Verify environment variables are loaded
-console.log("MongoDB URI:", process.env.MONGO_URI);
+console.log("MongoDB URI:", config.MONGO_URI);
 
 mongoose
-  .connect(process.env.MONGO_URI, {
+  .connect(config.MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })

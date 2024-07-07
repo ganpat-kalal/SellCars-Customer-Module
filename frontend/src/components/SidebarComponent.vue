@@ -94,8 +94,8 @@ export default defineComponent({
             }
             try {
                 errorMessage.value = '';
-                const res = await uploadFile(type, files[0]);
-                successMessage.value = res?.message || 'Customers uploaded successfully!';
+                await uploadFile(type, files[0]);
+                successMessage.value = 'Customers uploaded successfully!';
                 emit('file-uploaded');
             } catch (error) {
                 errorMessage.value = '';

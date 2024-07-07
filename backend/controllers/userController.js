@@ -1,6 +1,7 @@
 const User = require("../models/userModel");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
+const config = require('../config/config');
 
 const createInitialUsers = async () => {
   const users = [
@@ -67,7 +68,7 @@ const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials!" });
     }
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id }, config.JWT_SECRET, {
       expiresIn: "1h",
     });
 

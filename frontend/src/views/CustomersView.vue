@@ -52,9 +52,9 @@ import axios from 'axios';
 import { fetchCustomers, deleteCustomer } from '@/services/customerService';
 import { Customer } from '@/types/Customer';
 import SidebarComponent from '@/components/SidebarComponent.vue';
-import EditCustomerModal from '@/components/EditCustomerModal.vue';
+import EditCustomerModal from '@/components/modals/EditCustomerModal.vue';
 import TableComponent from '@/components/TableComponent.vue';
-import ConfirmModal from '@/components/ConfirmModal.vue';
+import ConfirmModal from '@/components/modals/ConfirmModal.vue';
 import ToastComponent from '@/components/ToastComponent.vue';
 
 export default defineComponent({
@@ -127,9 +127,9 @@ export default defineComponent({
     const deleteCustomerFn = async () => {
       if (customerToDelete.value) {
         try {
-          const res = await deleteCustomer(customerToDelete.value);
+          await deleteCustomer(customerToDelete.value);
           fetchCustomersData();
-          successMessage.value = res?.message || 'Customer deleted successfully!';
+          successMessage.value = 'Customer deleted successfully!';
           closeDeleteModal();
         } catch (error) {
           if (axios.isAxiosError(error)) {

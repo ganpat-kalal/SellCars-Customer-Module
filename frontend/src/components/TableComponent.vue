@@ -24,10 +24,12 @@
                     <td>{{ customer.addresses[0]?.zip }} / {{ customer.addresses[0]?.city }}</td>
                     <td>{{ customer.addresses[0]?.street }}</td>
                     <td class="text-center">
-                        <button @click="$emit('edit-customer', customer)">
+                        <button @click="$emit('edit-customer', customer)" title="Edit Customer" data-bs-toggle="tooltip"
+                            data-bs-placement="top">
                             <img :src="editIcon" alt="Edit" class="action-icon" />
                         </button>
-                        <button @click="$emit('delete-customer', customer.intnr)">
+                        <button @click="$emit('delete-customer', customer.intnr)" title="Delete Customer"
+                            data-bs-toggle="tooltip" data-bs-placement="top">
                             <img :src="deleteIcon" alt="Delete" class="action-icon ml-2" />
                         </button>
                     </td>

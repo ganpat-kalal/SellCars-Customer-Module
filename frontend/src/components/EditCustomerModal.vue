@@ -86,6 +86,7 @@
 import { defineComponent, PropType, ref, watch, computed } from 'vue';
 import axios from 'axios';
 import { Customer } from '../types/Customer';
+import { updateCustomer } from '@/services/customerService';
 import ToastComponent from '@/components/ToastComponent.vue';
 
 export default defineComponent({
@@ -107,6 +108,7 @@ export default defineComponent({
   setup(props, { emit }) {
     const localCustomer = ref<Customer | null>(null);
     const errorMessage = ref('');
+    const successMessage = ref('');
 
     watch(
       () => props.customer,
@@ -137,11 +139,8 @@ export default defineComponent({
       if (localCustomer.value && isFormValid.value) {
         try {
           errorMessage.value = '';
-          await axios.put(`http://localhost:5000/api/customers/${localCustomer.value.intnr}`, localCustomer.value, {
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-          });
+          const res = await updateCustomer(localCustomer.value);
+          successMessage.value = 'Customer updated successfully!';
           emit('saved');
           close();
         } catch (error) {

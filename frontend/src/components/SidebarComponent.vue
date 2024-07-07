@@ -94,16 +94,21 @@ export default defineComponent({
             }
             try {
                 errorMessage.value = '';
-                await uploadFile(type, files[0]);
+                const res = await uploadFile(type, files[0]);
+                successMessage.value = res?.message || 'Customers uploaded successfully!';
                 emit('file-uploaded');
-                successMessage.value = 'Customers uploaded successfully!';
             } catch (error) {
                 errorMessage.value = '';
                 if (axios.isAxiosError(error)) {
-                    errorMessage.value = 'File upload failed: ' + (error.response?.data.message || error.message);
+                    if (error.response?.data.error) {
+                        errorMessage.value = error.response?.data.error;
+                    } else if (error.response?.data.errors) {
+                        errorMessage.value = error.response?.data.errors.join('\n');
+                    }
                 } else {
                     errorMessage.value = 'File upload failed: ' + error;
                 }
+                emit('file-uploaded');
             }
         };
 

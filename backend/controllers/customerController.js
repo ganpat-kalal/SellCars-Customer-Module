@@ -18,7 +18,7 @@ const getCustomerByIntnr = async (req, res) => {
   try {
     const customer = await Customer.findOne({ intnr: req.params.intnr }).populate('contact_persons.address');
     if (!customer) {
-      return res.status(404).json({ message: 'Customer not found' });
+      return res.status(404).json({ message: 'Customer not found!' });
     }
     res.status(200).json(customer);
   } catch (error) {
@@ -32,20 +32,20 @@ const createCustomer = async (req, res) => {
     const { contact_persons, addresses, ...customerData } = req.body;
 
     if (!contact_persons || contact_persons.length === 0 || !addresses || addresses.length === 0) {
-      return res.status(400).json({ message: "Customer must have at least one contact person and one address" });
+      return res.status(400).json({ message: "Customer must have at least one contact person and one address!" });
     }
 
     for (let contactPerson of contact_persons) {
       const errors = validateContactPerson(contactPerson);
       if (errors.length > 0) {
-        return res.status(400).json({ message: "Invalid contact person data", errors });
+        return res.status(400).json({ message: "Invalid contact person data!", errors });
       }
     }
 
     for (let address of addresses) {
       const errors = validateAddress(address);
       if (errors.length > 0) {
-        return res.status(400).json({ message: "Invalid address data", errors });
+        return res.status(400).json({ message: "Invalid address data!", errors });
       }
     }
 
@@ -98,7 +98,7 @@ const deleteCustomer = async (req, res) => {
 
 const uploadCustomers = async (req, res) => {
   if (!req.file) {
-    return res.status(400).json({ message: "No file uploaded" });
+    return res.status(400).json({ message: "No file uploaded!" });
   }
 
   const customers = [];
@@ -321,7 +321,7 @@ const uploadAddresses = async (req, res) => {
       } catch (err) {
         res
           .status(500)
-          .json({ message: "Error uploading addresses!", error: err.message });
+          .json({ message: err.message, error: err });
       }
     });
 };

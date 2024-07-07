@@ -115,9 +115,9 @@ export default defineComponent({
     const confirmDeleteCustomer = async (intnr: string) => {
       if (confirm('Are you sure that you want to delete this customer?')) {
         try {
-          await deleteCustomer(intnr);
+          const res = await deleteCustomer(intnr);
           fetchCustomersData();
-          successMessage.value = 'Customer deleted successfully!';
+          successMessage.value = res?.message || 'Customer deleted successfully!';
         } catch (error) {
           if (axios.isAxiosError(error)) {
             errorMessage.value = 'Failed to delete customer: ' + (error.response?.data.message || error.message);

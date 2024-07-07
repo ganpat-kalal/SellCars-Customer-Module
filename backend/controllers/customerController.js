@@ -1,7 +1,7 @@
 const csv = require("csv-parser");
 const fs = require("fs");
 const Customer = require("../models/customerModel");
-const { validateContactPerson, validateAddress } = require('../utils/validation');
+const { validateContactPerson, validateAddress, validateFileType } = require('../utils/validation');
 
 // Get all customers
 const getCustomers = async (req, res) => {
@@ -103,10 +103,24 @@ const uploadCustomers = async (req, res) => {
 
   const customers = [];
   const errors = [];
+  let fileType = null;
+
   const parser = fs
     .createReadStream(req.file.path)
     .pipe(csv())
     .on("data", (row) => {
+      if (!fileType) {
+        try {
+          fileType = validateFileType(row);
+          if (fileType !== 'customer') {
+            throw new Error("Uploaded file is not a valid customers file!");
+          }
+        } catch (err) {
+          parser.destroy();
+          return res.status(400).json({ message: "Uploaded file is not a valid customers file!", error: err.message });
+        }
+      }
+
       const customer = {
         intnr: row["A"],
         type: row["B"],
@@ -178,10 +192,13 @@ const uploadCustomers = async (req, res) => {
         }
 
         res.status(201).json({ message: "Customers uploaded successfully" });
+        parser.destroy();
       } catch (err) {
-        res
-          .status(500)
-          .json({ message: "Error uploading customers", error: err.message });
+        res.status(500).json({
+          message: "Error uploading customers!",
+          error: err.message
+        });
+        parser.destroy();
       }
     });
 };
@@ -193,10 +210,25 @@ const uploadContactPersons = async (req, res) => {
 
   const contactPersons = [];
   const errors = [];
+  let fileType = null;
+
   const parser = fs
     .createReadStream(req.file.path)
     .pipe(csv())
     .on("data", (row) => {
+
+      if (!fileType) {
+        try {
+          fileType = validateFileType(row);
+          if (fileType !== 'contactPerson') {
+            throw new Error("Uploaded file is not a valid contact persons file!");
+          }
+        } catch (err) {
+          parser.destroy();
+          return res.status(400).json({ message: "Uploaded file is not a valid contact persons file!", error: err.message });
+        }
+      }
+
       const contactPerson = {
         first_name: row["C"],
         last_name: row["D"],
@@ -215,7 +247,6 @@ const uploadContactPersons = async (req, res) => {
       } else {
         contactPersons.push({
           intnr: row["A"],
-          type: row["B"],
           contact_persons: [contactPerson],
         });
       }
@@ -240,19 +271,26 @@ const uploadContactPersons = async (req, res) => {
             );
             await existingCustomer.save();
           } else {
-            // Create new customer with contact person
-            await Customer.create(contactPerson);
+            errors.push(`Customer with intnr ${address.intnr} does not exist.`);
           }
         }
 
-        res
-          .status(201)
-          .json({ message: "Contact persons uploaded successfully!" });
+        if (errors.length) {
+          return res
+            .status(400)
+            .json({ message: "Some contact persons were not added", errors });
+        } else {
+          res
+            .status(201)
+            .json({ message: "Contact persons uploaded successfully!" });
+        }
+        parser.destroy();
       } catch (err) {
         res.status(500).json({
           message: "Error uploading contact persons!",
           error: err.message,
         });
+        parser.destroy();
       }
     });
 };
@@ -264,10 +302,25 @@ const uploadAddresses = async (req, res) => {
 
   const addresses = [];
   const errors = [];
+  let fileType = null;
+
   const parser = fs
     .createReadStream(req.file.path)
     .pipe(csv())
     .on("data", (row) => {
+
+      if (!fileType) {
+        try {
+          fileType = validateFileType(row);
+          if (fileType !== 'address') {
+            throw new Error("Uploaded file is not a valid address file!");
+          }
+        } catch (err) {
+          parser.destroy();
+          return res.status(400).json({ message: "Uploaded file is not a valid address file!", error: err.message });
+        }
+      }
+
       const address = {
         company_name: row["H"],
         country: row["I"],
@@ -289,7 +342,6 @@ const uploadAddresses = async (req, res) => {
       } else {
         addresses.push({
           intnr: row["A"],
-          type: row["B"],
           addresses: [address],
         });
       }
@@ -312,16 +364,24 @@ const uploadAddresses = async (req, res) => {
             existingCustomer.addresses.push(address.addresses[0]);
             await existingCustomer.save();
           } else {
-            // Create new customer with address
-            await Customer.create(address);
+            errors.push(`Customer with intnr ${address.intnr} does not exist.`);
           }
         }
 
-        res.status(201).json({ message: "Addresses uploaded successfully!" });
+        if (errors.length) {
+          return res
+            .status(400)
+            .json({ message: "Some addresses were not added", errors });
+        } else {
+          res.status(201).json({ message: "Addresses uploaded successfully!" });
+        }
+        parser.destroy();
       } catch (err) {
-        res
-          .status(500)
-          .json({ message: err.message, error: err });
+        res.status(500).json({
+          message: "Error uploading addresses!",
+          error: err.message,
+        });
+        parser.destroy();
       }
     });
 };

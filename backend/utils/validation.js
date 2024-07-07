@@ -50,7 +50,20 @@ const validateAddress = (address) => {
     return errors;
 };
 
+const validateFileType = (row) => {
+    if (row["A"] && row["B"] && row["C"] && row["D"] && row["E"] && row["F"] && row["G"] && row["H"] && row["I"] && row["J"] && row["K"] && row["L"] && row["M"] && row["N"] && row["O"]) {
+        return 'customer';
+    } else if (row["A"] && row["C"] && row["D"] && row["E"] && row["F"] && row["G"]) {
+        return 'contactPerson';
+    } else if (row["A"] && row["H"] && row["I"] && row["J"] && row["K"] && row["L"] && row["M"] && row["N"] && row["O"]) {
+        return 'address';
+    } else {
+        throw new Error("Invalid file type");
+    }
+};
+
 module.exports = {
     validateContactPerson,
-    validateAddress
+    validateAddress,
+    validateFileType
 };

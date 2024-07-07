@@ -1,7 +1,7 @@
 <template>
     <div class="table-responsive">
         <table class="table table-bordered table-striped">
-            <thead>
+            <thead class="thead-light">
                 <tr>
                     <th v-for="field in fields" :key="field.key"
                         @click="field.key !== 'actions' && sortTable(field.key)">

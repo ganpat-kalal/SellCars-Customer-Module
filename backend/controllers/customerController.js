@@ -31,7 +31,7 @@ const createCustomer = async (req, res) => {
   try {
     const { contact_persons, addresses, ...customerData } = req.body;
 
-    if (!contact_persons || contact_persons.length === 0 || !addresses || addresses.length === 0) {
+    if (!contact_persons || !addresses || contact_persons.length === 0 || addresses.length === 0) {
       return res.status(400).json({ message: "Customer must have at least one contact person and one address!" });
     }
 
@@ -103,196 +103,139 @@ const uploadCustomers = async (req, res) => {
 
   const customers = [];
   const errors = [];
-  let fileType = null;
 
-  const parser = fs
-    .createReadStream(req.file.path)
-    .pipe(csv())
-    .on("data", (row) => {
-      if (!fileType) {
-        try {
-          fileType = validateFileType(row);
-          if (fileType !== 'customer') {
-            throw new Error("Uploaded file is not a valid customers file!");
-          }
-        } catch (err) {
-          parser.destroy();
-          return res.status(400).json({ message: "Uploaded file is not a valid customers file!", error: err.message });
-        }
+  parseCSVFile(req.file.path, 'customer', (row, err) => {
+    if (err) {
+      return res.status(400).json({ message: err.message });
+    }
+
+    const customer = {
+      intnr: row["A"],
+      type: row["B"],
+      contact_persons: [
+        {
+          first_name: row["C"],
+          last_name: row["D"],
+          email: row["E"],
+          mobile_phone: row["F"],
+          birth_date: row["G"],
+          address: null, // This will be set after creating the address
+        },
+      ],
+      addresses: [
+        {
+          company_name: row["H"],
+          country: row["I"],
+          city: row["J"],
+          zip: row["K"],
+          fax: row["L"],
+          phone: row["M"],
+          street: row["N"],
+          email: row["O"],
+        },
+      ],
+    };
+
+    const contactPersonErrors = validateContactPerson(customer.contact_persons[0]);
+    const addressErrors = validateAddress(customer.addresses[0]);
+
+    if (contactPersonErrors.length > 0 || addressErrors.length > 0) {
+      errors.push({
+        customer,
+        errors: [...contactPersonErrors, ...addressErrors],
+      });
+    } else {
+      customers.push(customer);
+    }
+  }, async (err) => {
+    if (err) {
+      return res.status(500).json({ message: "Error uploading customers!", error: err.message });
+    }
+
+    if (errors.length > 0) {
+      return res.status(400).json({ message: "Validation errors occurred!", errors });
+    }
+
+    for (const customer of customers) {
+      const existingCustomer = await Customer.findOne({ intnr: customer.intnr });
+      if (existingCustomer) {
+        errors.push(`Customer with intnr ${customer.intnr} already exists.`);
+        continue;
       }
 
-      const customer = {
-        intnr: row["A"],
-        type: row["B"],
-        contact_persons: [
-          {
-            first_name: row["C"],
-            last_name: row["D"],
-            email: row["E"],
-            mobile_phone: row["F"],
-            birth_date: row["G"],
-            address: null, // This will be set after creating the address
-          },
-        ],
-        addresses: [
-          {
-            company_name: row["H"],
-            country: row["I"],
-            city: row["J"],
-            zip: row["K"],
-            fax: row["L"],
-            phone: row["M"],
-            street: row["N"],
-            email: row["O"],
-          },
-        ],
-      };
+      const createdCustomer = await Customer.create(customer);
+      createdCustomer.contact_persons[0].address = createdCustomer.addresses[0]._id;
+      await createdCustomer.save();
+    }
 
-      const contactPersonErrors = validateContactPerson(customer.contact_persons[0]);
-      const addressErrors = validateAddress(customer.addresses[0]);
+    if (errors.length) {
+      return res.status(400).json({ message: "Some customers were not created", errors });
+    }
 
-      if (contactPersonErrors.length > 0 || addressErrors.length > 0) {
-        errors.push({
-          customer,
-          errors: [...contactPersonErrors, ...addressErrors],
-        });
-      } else {
-        customers.push(customer);
-      }
-    })
-    .on("end", async () => {
-      try {
-        if (errors.length > 0) {
-          return res.status(400).json({
-            message: "Validation errors occurred!",
-            errors,
-          });
-        }
-
-        for (const customer of customers) {
-          const existingCustomer = await Customer.findOne({
-            intnr: customer.intnr,
-          });
-          if (existingCustomer) {
-            errors.push(
-              `Customer with intnr ${customer.intnr} already exists.`
-            );
-            continue;
-          }
-
-          const createdCustomer = await Customer.create(customer);
-          createdCustomer.contact_persons[0].address = createdCustomer.addresses[0]._id;
-          await createdCustomer.save();
-        }
-
-        if (errors.length) {
-          return res
-            .status(400)
-            .json({ message: "Some customers were not created", errors });
-        }
-
-        res.status(201).json({ message: "Customers uploaded successfully" });
-        parser.destroy();
-      } catch (err) {
-        res.status(500).json({
-          message: "Error uploading customers!",
-          error: err.message
-        });
-        parser.destroy();
-      }
-    });
+    res.status(201).json({ message: "Customers uploaded successfully" });
+  });
 };
 
 const uploadContactPersons = async (req, res) => {
   if (!req.file) {
-    return res.status(400).json({ message: "No file uploaded" });
+    return res.status(400).json({ message: "No file uploaded!" });
   }
 
   const contactPersons = [];
   const errors = [];
-  let fileType = null;
 
-  const parser = fs
-    .createReadStream(req.file.path)
-    .pipe(csv())
-    .on("data", (row) => {
+  parseCSVFile(req.file.path, 'contactPerson', (row, err) => {
+    if (err) {
+      return res.status(400).json({ message: err.message });
+    }
 
-      if (!fileType) {
-        try {
-          fileType = validateFileType(row);
-          if (fileType !== 'contactPerson') {
-            throw new Error("Uploaded file is not a valid contact persons file!");
-          }
-        } catch (err) {
-          parser.destroy();
-          return res.status(400).json({ message: "Uploaded file is not a valid contact persons file!", error: err.message });
-        }
-      }
+    const contactPerson = {
+      first_name: row["C"],
+      last_name: row["D"],
+      email: row["E"],
+      mobile_phone: row["F"],
+      birth_date: row["G"],
+    };
 
-      const contactPerson = {
-        first_name: row["C"],
-        last_name: row["D"],
-        email: row["E"],
-        mobile_phone: row["F"],
-        birth_date: row["G"],
-      };
+    // Validate contact person
+    const validationErrors = validateContactPerson(contactPerson);
+    if (validationErrors.length > 0) {
+      errors.push({
+        contactPerson,
+        errors: validationErrors,
+      });
+    } else {
+      contactPersons.push({
+        intnr: row["A"],
+        contact_persons: [contactPerson],
+      });
+    }
+  }, async (err) => {
+    if (err) {
+      return res.status(500).json({ message: "Error uploading contact persons!", error: err.message });
+    }
 
-      // Validate contact person
-      const validationErrors = validateContactPerson(contactPerson);
-      if (validationErrors.length > 0) {
-        errors.push({
-          contactPerson,
-          errors: validationErrors,
-        });
+    if (errors.length > 0) {
+      return res.status(400).json({ message: "Validation errors occurred!", errors });
+    }
+
+    for (const contactPerson of contactPersons) {
+      const existingCustomer = await Customer.findOne({ intnr: contactPerson.intnr });
+      if (existingCustomer) {
+        // Update existing customer with new contact person
+        existingCustomer.contact_persons.push(contactPerson.contact_persons[0]);
+        await existingCustomer.save();
       } else {
-        contactPersons.push({
-          intnr: row["A"],
-          contact_persons: [contactPerson],
-        });
+        errors.push(`Customer with intnr ${contactPerson.intnr} does not exist.`);
       }
-    })
-    .on("end", async () => {
-      try {
-        if (errors.length > 0) {
-          return res.status(400).json({
-            message: "Validation errors occurred!",
-            errors,
-          });
-        }
+    }
 
-        for (const contactPerson of contactPersons) {
-          const existingCustomer = await Customer.findOne({
-            intnr: contactPerson.intnr,
-          });
-          if (existingCustomer) {
-            // Update existing customer with new contact person
-            existingCustomer.contact_persons.push(
-              contactPerson.contact_persons[0]
-            );
-            await existingCustomer.save();
-          } else {
-            errors.push(`Customer with intnr ${address.intnr} does not exist.`);
-          }
-        }
+    if (errors.length) {
+      return res.status(400).json({ message: "Some contact persons were not added", errors });
+    }
 
-        if (errors.length) {
-          return res
-            .status(400)
-            .json({ message: "Some contact persons were not added", errors });
-        } else {
-          res
-            .status(201)
-            .json({ message: "Contact persons uploaded successfully!" });
-        }
-        parser.destroy();
-      } catch (err) {
-        res.status(500).json({
-          message: "Error uploading contact persons!",
-          error: err.message,
-        });
-        parser.destroy();
-      }
-    });
+    res.status(201).json({ message: "Contact persons uploaded successfully!" });
+  });
 };
 
 const uploadAddresses = async (req, res) => {
@@ -302,88 +245,88 @@ const uploadAddresses = async (req, res) => {
 
   const addresses = [];
   const errors = [];
-  let fileType = null;
 
-  const parser = fs
-    .createReadStream(req.file.path)
-    .pipe(csv())
-    .on("data", (row) => {
+  parseCSVFile(req.file.path, 'address', (row, err) => {
+    if (err) {
+      return res.status(400).json({ message: err.message });
+    }
 
-      if (!fileType) {
-        try {
-          fileType = validateFileType(row);
-          if (fileType !== 'address') {
-            throw new Error("Uploaded file is not a valid address file!");
-          }
-        } catch (err) {
-          parser.destroy();
-          return res.status(400).json({ message: "Uploaded file is not a valid address file!", error: err.message });
-        }
-      }
+    const address = {
+      company_name: row["H"],
+      country: row["I"],
+      city: row["J"],
+      zip: row["K"],
+      fax: row["L"],
+      phone: row["M"],
+      street: row["N"],
+      email: row["O"],
+    };
 
-      const address = {
-        company_name: row["H"],
-        country: row["I"],
-        city: row["J"],
-        zip: row["K"],
-        fax: row["L"],
-        phone: row["M"],
-        street: row["N"],
-        email: row["O"],
-      };
+    // Validate address
+    const validationErrors = validateAddress(address);
+    if (validationErrors.length > 0) {
+      errors.push({
+        address,
+        errors: validationErrors,
+      });
+    } else {
+      addresses.push({
+        intnr: row["A"],
+        addresses: [address],
+      });
+    }
+  }, async (err) => {
+    if (err) {
+      return res.status(500).json({ message: "Error uploading addresses!", error: err.message });
+    }
 
-      // Validate address
-      const validationErrors = validateAddress(address);
-      if (validationErrors.length > 0) {
-        errors.push({
-          address,
-          errors: validationErrors,
-        });
+    if (errors.length > 0) {
+      return res.status(400).json({ message: "Validation errors occurred!", errors });
+    }
+
+    for (const address of addresses) {
+      const existingCustomer = await Customer.findOne({ intnr: address.intnr });
+      if (existingCustomer) {
+        // Update existing customer with new address
+        existingCustomer.addresses.push(address.addresses[0]);
+        await existingCustomer.save();
       } else {
-        addresses.push({
-          intnr: row["A"],
-          addresses: [address],
-        });
+        errors.push(`Customer with intnr ${address.intnr} does not exist.`);
       }
-    })
-    .on("end", async () => {
+    }
+
+    if (errors.length) {
+      return res.status(400).json({ message: "Some addresses were not added", errors });
+    }
+
+    res.status(201).json({ message: "Addresses uploaded successfully!" });
+  });
+};
+
+// Helper function to parse CSV file
+const parseCSVFile = (filePath, fileType, rowHandler, endHandler) => {
+  const parser = fs.createReadStream(filePath).pipe(csv());
+
+  let detectedFileType = null;
+
+  parser.on("data", (row) => {
+    if (!detectedFileType) {
       try {
-        if (errors.length > 0) {
-          return res.status(400).json({
-            message: "Validation errors occurred!",
-            errors,
-          });
+        detectedFileType = validateFileType(row);
+        if (detectedFileType !== fileType) {
+          throw new Error(`Uploaded file is not a valid ${fileType} file!`);
         }
-
-        for (const address of addresses) {
-          const existingCustomer = await Customer.findOne({
-            intnr: address.intnr,
-          });
-          if (existingCustomer) {
-            // Update existing customer with new address
-            existingCustomer.addresses.push(address.addresses[0]);
-            await existingCustomer.save();
-          } else {
-            errors.push(`Customer with intnr ${address.intnr} does not exist.`);
-          }
-        }
-
-        if (errors.length) {
-          return res
-            .status(400)
-            .json({ message: "Some addresses were not added", errors });
-        } else {
-          res.status(201).json({ message: "Addresses uploaded successfully!" });
-        }
-        parser.destroy();
       } catch (err) {
-        res.status(500).json({
-          message: "Error uploading addresses!",
-          error: err.message,
-        });
         parser.destroy();
+        return rowHandler(null, err);
       }
-    });
+    }
+    rowHandler(row);
+  });
+
+  parser.on("end", endHandler);
+
+  parser.on("error", (err) => endHandler(err));
 };
 
 module.exports = {

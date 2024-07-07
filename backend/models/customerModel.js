@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const contactPersonSchema = require("./contactPersonModel").schema;
 const addressSchema = require("./addressModel").schema;
+const CustomerTypes = require('../enums/customerTypes');
 
 const customerSchema = new mongoose.Schema({
   intnr: {
@@ -11,7 +12,7 @@ const customerSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ["PRIVATE", "COMPANY", "DEALER"],
+    enum: Object.values(CustomerTypes),
     required: true,
   },
   contact_persons: {

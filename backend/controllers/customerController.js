@@ -1,6 +1,7 @@
 const csv = require("csv-parser");
 const fs = require("fs");
 const Customer = require("../models/customerModel");
+const CustomerTypes = require("../enums/customerTypes");
 const { validateContactPerson, validateAddress, validateFileType } = require('../utils/validation');
 
 // Get all customers
@@ -33,6 +34,10 @@ const createCustomer = async (req, res) => {
 
     if (!contact_persons || !addresses || contact_persons.length === 0 || addresses.length === 0) {
       return res.status(400).json({ message: "Customer must have at least one contact person and one address!" });
+    }
+
+    if (!Object.values(CustomerTypes).includes(customerData.type)) {
+      return res.status(400).json({ message: "Invalid customer type!" });
     }
 
     for (let contactPerson of contact_persons) {
@@ -72,7 +77,7 @@ const updateCustomer = async (req, res) => {
     }
 
     // Validate type
-    if (!["PRIVATE", "COMPANY", "DEALER"].includes(type)) {
+    if (!Object.values(CustomerTypes).includes(type)) {
       return res.status(400).json({ message: "Invalid customer type!" });
     }
 
@@ -97,7 +102,7 @@ const updateCustomer = async (req, res) => {
     }
 
     // Ensure company_name and address email are only set if type is COMPANY or DEALER
-    if (["COMPANY", "DEALER"].includes(type)) {
+    if ([CustomerTypes.COMPANY, CustomerTypes.DEALER].includes(type)) {
       if (!address.company_name || !address.email) {
         return res.status(400).json({ message: "Company name and email are required for COMPANY or DEALER types!" });
       }
@@ -114,14 +119,14 @@ const updateCustomer = async (req, res) => {
         'contact_persons.0.last_name': contactPerson.last_name,
         'contact_persons.0.email': contactPerson.email,
         'contact_persons.0.mobile_phone': contactPerson.mobile_phone,
-        'addresses.0.company_name': type == 'PRIVATE' ? null : address.company_name,
+        'addresses.0.company_name': type == CustomerTypes.PRIVATE ? null : address.company_name,
         'addresses.0.country': address.country,
         'addresses.0.zip': address.zip,
         'addresses.0.city': address.city,
         'addresses.0.street': address.street,
-        'addresses.0.fax': type == 'PRIVATE' ? null : address.fax,
-        'addresses.0.phone': type == 'PRIVATE' ? null : address.phone,
-        'addresses.0.email': type == 'PRIVATE' ? null : address.email,
+        'addresses.0.fax': type == CustomerTypes.PRIVATE ? null : address.fax,
+        'addresses.0.phone': type == CustomerTypes.PRIVATE ? null : address.phone,
+        'addresses.0.email': type == CustomerTypes.PRIVATE ? null : address.email,
         updated_at: Date.now(),
       },
       { new: true, runValidators: true }

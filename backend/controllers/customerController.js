@@ -65,14 +65,70 @@ const createCustomer = async (req, res) => {
 // Update a customer by Intnr
 const updateCustomer = async (req, res) => {
   try {
+    const { type, contact_persons, addresses } = req.body;
+
+    if (!type || !contact_persons || !addresses) {
+      return res.status(400).json({ message: "Type, contact persons, and addresses are required!" });
+    }
+
+    // Validate type
+    if (!["PRIVATE", "COMPANY", "DEALER"].includes(type)) {
+      return res.status(400).json({ message: "Invalid customer type!" });
+    }
+
+    // Validate contact persons
+    if (contact_persons.length === 0) {
+      return res.status(400).json({ message: "Customer must have at least one contact person!" });
+    }
+    const contactPerson = contact_persons[0];
+    const contactPersonErrors = validateContactPerson(contactPerson);
+    if (contactPersonErrors.length > 0) {
+      return res.status(400).json({ message: "Invalid contact person data!", errors: contactPersonErrors });
+    }
+
+    // Validate addresses
+    if (addresses.length === 0) {
+      return res.status(400).json({ message: "Customer must have at least one address!" });
+    }
+    const address = addresses[0];
+    const addressErrors = validateAddress(address);
+    if (addressErrors.length > 0) {
+      return res.status(400).json({ message: "Invalid address data!", errors: addressErrors });
+    }
+
+    // Ensure company_name and address email are only set if type is COMPANY or DEALER
+    if (["COMPANY", "DEALER"].includes(type)) {
+      if (!address.company_name || !address.email) {
+        return res.status(400).json({ message: "Company name and email are required for COMPANY or DEALER types!" });
+      }
+    } else {
+      address.company_name = undefined;
+      address.email = undefined;
+    }
+
     const updatedCustomer = await Customer.findOneAndUpdate(
       { intnr: req.params.intnr },
-      req.body,
-      { new: true }
+      {
+        type,
+        'contact_persons.0.first_name': contactPerson.first_name,
+        'contact_persons.0.last_name': contactPerson.last_name,
+        'contact_persons.0.email': contactPerson.email,
+        'contact_persons.0.mobile_phone': contactPerson.mobile_phone,
+        'addresses.0.company_name': address.company_name,
+        'addresses.0.country': address.country,
+        'addresses.0.zip': address.zip,
+        'addresses.0.city': address.city,
+        'addresses.0.street': address.street,
+        'addresses.0.email': address.email,
+        updated_at: Date.now(),
+      },
+      { new: true, runValidators: true }
     ).populate("contact_persons.address");
+
     if (!updatedCustomer) {
       return res.status(404).json({ message: "Customer not found!" });
     }
+
     res.status(200).json(updatedCustomer);
   } catch (err) {
     res.status(400).json({ message: err.message });

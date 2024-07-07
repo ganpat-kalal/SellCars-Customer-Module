@@ -115,6 +115,7 @@ export default defineComponent({
 <style lang="scss" scoped>
 .table-responsive {
     margin: 20px 0;
+    max-height: calc(100vh - 282px);
 
     thead {
         border-bottom: 2px solid #a9a9a9;

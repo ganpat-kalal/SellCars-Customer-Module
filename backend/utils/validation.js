@@ -1,5 +1,3 @@
-// utils/validation.js
-
 const validateContactPerson = (contactPerson) => {
     const errors = [];
 
@@ -9,16 +7,14 @@ const validateContactPerson = (contactPerson) => {
     if (!contactPerson.last_name) {
         errors.push("Last name is required!");
     }
-    if (
-        contactPerson.email &&
-        !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(contactPerson.email)
-    ) {
+    if (!contactPerson.email) {
+        errors.push("Email is required!");
+    } else if (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(contactPerson.email)) {
         errors.push("Invalid email format!");
     }
-    if (
-        contactPerson.mobile_phone &&
-        !/^\d{7,15}$/.test(contactPerson.mobile_phone)
-    ) {
+    if (!contactPerson.mobile_phone) {
+        errors.push("Mobile phone is required!");
+    } else if (!/^\d{7,15}$/.test(contactPerson.mobile_phone)) {
         errors.push("Invalid phone number format!");
     }
 
@@ -28,9 +24,6 @@ const validateContactPerson = (contactPerson) => {
 const validateAddress = (address) => {
     const errors = [];
 
-    if (!address.company_name) {
-        errors.push("Company name is required!");
-    }
     if (!address.country) {
         errors.push("Country is required!");
     }

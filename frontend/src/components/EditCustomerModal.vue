@@ -80,6 +80,7 @@
     </div>
   </div>
   <ToastComponent :message="errorMessage" type="alert" />
+  <ToastComponent :message="successMessage" type="success" />
 </template>
 
 <script lang="ts">
@@ -160,7 +161,8 @@ export default defineComponent({
       close,
       saveCustomer,
       errorMessage,
-      isFormValid
+      isFormValid,
+      successMessage
     };
   }
 });

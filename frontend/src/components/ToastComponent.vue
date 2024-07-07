@@ -80,6 +80,6 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .toast-container {
-    z-index: 1050;
+    z-index: 9999 !important;
 }
 </style>

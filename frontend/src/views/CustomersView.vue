@@ -95,9 +95,14 @@ export default defineComponent({
     const filteredCustomers = computed(() => {
       return customers.value.filter(customer => {
         return (
+          customer?.intnr.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
           customer?.contact_persons?.[0]?.first_name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
           customer?.contact_persons?.[0]?.last_name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-          customer?.addresses?.[0]?.company_name.toLowerCase().includes(searchQuery.value.toLowerCase())
+          customer?.addresses?.[0]?.company_name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+          customer?.addresses?.[0]?.country.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+          customer?.addresses?.[0]?.zip.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+          customer?.addresses?.[0]?.city.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+          customer?.addresses?.[0]?.street.toLowerCase().includes(searchQuery.value.toLowerCase())
         );
       });
     });

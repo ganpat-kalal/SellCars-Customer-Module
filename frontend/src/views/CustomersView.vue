@@ -19,14 +19,18 @@
         </div>
 
         <!-- Table Component start -->
-        <TableComponent :customers="filteredCustomers" :fields="fields" @edit-customer="editCustomer"
-          @delete-customer="confirmDeleteCustomer" />
+        <TableComponent :customers="filteredCustomers" @edit-customer="openEditModal"
+          @delete-customer="openDeleteModal" />
         <!-- Table Component end -->
 
         <!-- Edit Customer Modal start -->
         <EditCustomerModal :show="showEditModal" :customer="selectedCustomer" @close="closeEditModal"
           @saved="fetchCustomersData" />
         <!-- Edit Customer Modal end -->
+
+        <!-- Confirm Delete Modal start -->
+        <ConfirmModal :show="showDeleteModal" @confirm="deleteCustomerFn" @cancel="closeDeleteModal" />
+        <!-- Confirm Delete Modal end -->
 
       </main>
       <!-- Main component end -->
@@ -50,6 +54,7 @@ import { Customer } from '@/types/Customer';
 import SidebarComponent from '@/components/SidebarComponent.vue';
 import EditCustomerModal from '@/components/EditCustomerModal.vue';
 import TableComponent from '@/components/TableComponent.vue';
+import ConfirmModal from '@/components/ConfirmModal.vue';
 import ToastComponent from '@/components/ToastComponent.vue';
 
 export default defineComponent({
@@ -58,6 +63,7 @@ export default defineComponent({
     SidebarComponent,
     EditCustomerModal,
     TableComponent,
+    ConfirmModal,
     ToastComponent
   },
   setup() {
@@ -65,19 +71,10 @@ export default defineComponent({
     const searchQuery = ref('');
     const showEditModal = ref(false);
     const selectedCustomer = ref<Customer | null>(null);
+    const showDeleteModal = ref(false);
+    const customerToDelete = ref<string | null>(null);
     const errorMessage = ref('');
     const successMessage = ref('');
-
-    const fields = ref([
-      { key: 'intnr', label: '#' },
-      { key: 'contact_persons.0.first_name', label: 'First' },
-      { key: 'contact_persons.0.last_name', label: 'Last' },
-      { key: 'addresses.0.company_name', label: 'Company Name' },
-      { key: 'addresses.0.country', label: 'Country' },
-      { key: 'addresses.0.zip', label: 'Zip/City' },
-      { key: 'addresses.0.street', label: 'Address' },
-      { key: 'actions', label: 'Actions' }
-    ]);
 
     const fetchCustomersData = async () => {
       try {
@@ -107,7 +104,7 @@ export default defineComponent({
       });
     });
 
-    const editCustomer = (customer: Customer) => {
+    const openEditModal = (customer: Customer) => {
       selectedCustomer.value = { ...customer };
       showEditModal.value = true;
     };
@@ -117,12 +114,23 @@ export default defineComponent({
       selectedCustomer.value = null;
     };
 
-    const confirmDeleteCustomer = async (intnr: string) => {
-      if (confirm('Are you sure that you want to delete this customer?')) {
+    const openDeleteModal = (intnr: string) => {
+      customerToDelete.value = intnr;
+      showDeleteModal.value = true;
+    };
+
+    const closeDeleteModal = () => {
+      showDeleteModal.value = false;
+      customerToDelete.value = null;
+    };
+
+    const deleteCustomerFn = async () => {
+      if (customerToDelete.value) {
         try {
-          const res = await deleteCustomer(intnr);
+          const res = await deleteCustomer(customerToDelete.value);
           fetchCustomersData();
           successMessage.value = res?.message || 'Customer deleted successfully!';
+          closeDeleteModal();
         } catch (error) {
           if (axios.isAxiosError(error)) {
             errorMessage.value = 'Failed to delete customer: ' + (error.response?.data.message || error.message);
@@ -138,13 +146,16 @@ export default defineComponent({
     return {
       searchQuery,
       customers,
-      fields,
       filteredCustomers,
       showEditModal,
       selectedCustomer,
-      editCustomer,
+      showDeleteModal,
+      customerToDelete,
+      openEditModal,
       closeEditModal,
-      confirmDeleteCustomer,
+      openDeleteModal,
+      closeDeleteModal,
+      deleteCustomerFn,
       fetchCustomersData,
       errorMessage,
       successMessage

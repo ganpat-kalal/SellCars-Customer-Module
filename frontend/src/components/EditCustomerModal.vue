@@ -40,7 +40,8 @@
                 <input type="tel" v-model="localCustomer.contact_persons[0].mobile_phone" id="mobile_phone"
                   class="form-control" pattern="\d{10}" title="Phone number should be 10 digits" />
               </div>
-              <div class="form-group col-md-6 mb-2">
+              <div v-if="localCustomer.type === 'COMPANY' || localCustomer.type === 'DEALER'"
+                class="form-group col-md-6 mb-2">
                 <label for="company_name">Company Name</label>
                 <input type="text" v-model="localCustomer.addresses[0].company_name" id="company_name"
                   class="form-control" required />
@@ -63,10 +64,11 @@
                 <input type="text" v-model="localCustomer.addresses[0].street" id="street" class="form-control"
                   required />
               </div>
-              <div class="form-group col-md-6 mb-2">
+              <div v-if="localCustomer.type === 'COMPANY' || localCustomer.type === 'DEALER'"
+                class="form-group col-md-6 mb-2">
                 <label for="address_email">Address Email</label>
-                <input type="email" v-model="localCustomer.addresses[0].email" id="address_email"
-                  class="form-control" />
+                <input type="email" v-model="localCustomer.addresses[0].email" id="address_email" class="form-control"
+                  required />
               </div>
             </div>
           </form>
@@ -127,9 +129,14 @@ export default defineComponent({
       const contactPerson = customer.contact_persons[0];
       const address = customer.addresses[0];
 
-      return customer.intnr && customer.type &&
-        contactPerson.first_name && contactPerson.last_name && contactPerson.email &&
-        address.company_name && address.country && address.zip && address.city && address.street;
+      const isContactPersonValid = contactPerson.first_name && contactPerson.last_name && contactPerson.email;
+      const isAddressValid = address.country && address.zip && address.city && address.street;
+
+      if (customer.type === 'COMPANY' || customer.type === 'DEALER') {
+        return isContactPersonValid && isAddressValid && address.company_name && address.email;
+      }
+
+      return isContactPersonValid && isAddressValid;
     });
 
     const close = () => {

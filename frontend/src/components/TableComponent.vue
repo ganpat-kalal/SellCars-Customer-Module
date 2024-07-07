@@ -19,6 +19,7 @@
                     <td>{{ customer.intnr }}</td>
                     <td>{{ customer.contact_persons[0]?.first_name }}</td>
                     <td>{{ customer.contact_persons[0]?.last_name }}</td>
+                    <td>{{ customer.type }}</td>
                     <td>{{ customer.addresses[0]?.company_name }}</td>
                     <td>{{ customer.addresses[0]?.country }}</td>
                     <td>{{ customer.addresses[0]?.zip }} / {{ customer.addresses[0]?.city }}</td>
@@ -52,24 +53,23 @@ export default defineComponent({
         customers: {
             type: Array,
             required: true,
-        },
-        fields: {
-            type: Array,
-            default: () => [
-                { key: 'intnr', label: '#' },
-                { key: 'contact_persons.0.first_name', label: 'First' },
-                { key: 'contact_persons.0.last_name', label: 'Last' },
-                { key: 'addresses.0.company_name', label: 'Company Name' },
-                { key: 'addresses.0.country', label: 'Country' },
-                { key: 'addresses.0.zip', label: 'Zip/City' },
-                { key: 'addresses.0.street', label: 'Address' },
-                { key: 'actions', label: 'Actions' },
-            ],
-        },
+        }
     },
     setup(props) {
         const sortKey = ref('');
         const sortAsc = ref(true);
+
+        const fields = ref([
+            { key: 'intnr', label: '#' },
+            { key: 'contact_persons.0.first_name', label: 'First' },
+            { key: 'contact_persons.0.last_name', label: 'Last' },
+            { key: 'type', label: 'Type' },
+            { key: 'addresses.0.company_name', label: 'Company Name' },
+            { key: 'addresses.0.country', label: 'Country' },
+            { key: 'addresses.0.zip', label: 'Zip/City' },
+            { key: 'addresses.0.street', label: 'Address' },
+            { key: 'actions', label: 'Actions' }
+        ]);
 
         const getValueByPath = (obj, path) => {
             return path.split('.').reduce((acc, part) => acc && acc[part], obj);
@@ -101,6 +101,7 @@ export default defineComponent({
         return {
             sortKey,
             sortAsc,
+            fields,
             sortedCustomers,
             sortTable,
             sortDownIcon,

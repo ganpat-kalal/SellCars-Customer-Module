@@ -10,7 +10,7 @@ const getCustomers = async (req, res) => {
     const customers = await Customer.find();
     res.status(200).json(customers);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json(errorResponse(error.message));
   }
 };
 
@@ -19,11 +19,11 @@ const getCustomerByIntnr = async (req, res) => {
   try {
     const customer = await Customer.findOne({ intnr: req.params.intnr }).populate('contact_persons.address');
     if (!customer) {
-      return res.status(404).json({ message: 'Customer not found!' });
+      return res.status(404).json(errorResponse('Customer not found!'));
     }
     res.status(200).json(customer);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json(errorResponse(error.message));
   }
 };
 
@@ -33,24 +33,24 @@ const createCustomer = async (req, res) => {
     const { contact_persons, addresses, ...customerData } = req.body;
 
     if (!contact_persons || !addresses || contact_persons.length === 0 || addresses.length === 0) {
-      return res.status(400).json({ message: "Customer must have at least one contact person and one address!" });
+      return res.status(400).json(errorResponse("Customer must have at least one contact person and one address!"));
     }
 
     if (!Object.values(CustomerTypes).includes(customerData.type)) {
-      return res.status(400).json({ message: "Invalid customer type!" });
+      return res.status(400).json(errorResponse("Invalid customer type!"));
     }
 
     for (let contactPerson of contact_persons) {
       const errors = validateContactPerson(contactPerson);
       if (errors.length > 0) {
-        return res.status(400).json({ message: "Invalid contact person data!", errors });
+        return res.status(400).json(errorResponse("Invalid contact person data!", errors));
       }
     }
 
     for (let address of addresses) {
       const errors = validateAddress(address);
       if (errors.length > 0) {
-        return res.status(400).json({ message: "Invalid address data!", errors });
+        return res.status(400).json(errorResponse("Invalid address data!", errors));
       }
     }
 
@@ -63,7 +63,7 @@ const createCustomer = async (req, res) => {
     const newCustomer = await customer.save();
     res.status(201).json(newCustomer);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(400).json(errorResponse(err.message));
   }
 };
 
@@ -73,38 +73,38 @@ const updateCustomer = async (req, res) => {
     const { type, contact_persons, addresses } = req.body;
 
     if (!type || !contact_persons || !addresses) {
-      return res.status(400).json({ message: "Type, contact persons, and addresses are required!" });
+      return res.status(400).json(errorResponse("Type, contact persons, and addresses are required!"));
     }
 
     // Validate type
     if (!Object.values(CustomerTypes).includes(type)) {
-      return res.status(400).json({ message: "Invalid customer type!" });
+      return res.status(400).json(errorResponse("Invalid customer type!"));
     }
 
     // Validate contact persons
     if (contact_persons.length === 0) {
-      return res.status(400).json({ message: "Customer must have at least one contact person!" });
+      return res.status(400).json(errorResponse("Customer must have at least one contact person!"));
     }
     const contactPerson = contact_persons[0];
     const contactPersonErrors = validateContactPerson(contactPerson);
     if (contactPersonErrors.length > 0) {
-      return res.status(400).json({ message: "Invalid contact person data!", errors: contactPersonErrors });
+      return res.status(400).json(errorResponse("Invalid contact person data!", contactPersonErrors));
     }
 
     // Validate addresses
     if (addresses.length === 0) {
-      return res.status(400).json({ message: "Customer must have at least one address!" });
+      return res.status(400).json(errorResponse("Customer must have at least one address!"));
     }
     const address = addresses[0];
     const addressErrors = validateAddress(address);
     if (addressErrors.length > 0) {
-      return res.status(400).json({ message: "Invalid address data!", errors: addressErrors });
+      return res.status(400).json(errorResponse("Invalid address data!", addressErrors));
     }
 
     // Ensure company_name and address email are only set if type is COMPANY or DEALER
     if ([CustomerTypes.COMPANY, CustomerTypes.DEALER].includes(type)) {
       if (!address.company_name || !address.email) {
-        return res.status(400).json({ message: "Company name and email are required for COMPANY or DEALER types!" });
+        return res.status(400).json(errorResponse("Company name and email are required for COMPANY or DEALER types!"));
       }
     } else {
       address.company_name = undefined;
@@ -133,12 +133,12 @@ const updateCustomer = async (req, res) => {
     ).populate("contact_persons.address");
 
     if (!updatedCustomer) {
-      return res.status(404).json({ message: "Customer not found!" });
+      return res.status(404).json(errorResponse("Customer not found!"));
     }
 
     res.status(200).json(updatedCustomer);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(400).json(errorResponse(err.message));
   }
 };
 
@@ -148,20 +148,20 @@ const deleteCustomer = async (req, res) => {
     const customer = await Customer.findOne({ intnr: req.params.intnr });
 
     if (!customer) {
-      return res.status(404).json({ message: 'Customer not found' });
+      return res.status(404).json(errorResponse('Customer not found'));
     }
 
     await Customer.deleteOne({ intnr: req.params.intnr });
 
     res.status(200).json({ message: 'Customer deleted successfully' });
   } catch (err) {
-    res.status(500).json({ message: 'Error deleting customer', error: err.message });
+    res.status(500).json(errorResponse('Error deleting customer', [err.message]));
   }
 };
 
 const uploadCustomers = async (req, res) => {
   if (!req.file) {
-    return res.status(400).json({ message: "No file uploaded!" });
+    return res.status(400).json(errorResponse("No file uploaded!"));
   }
 
   const customers = [];
@@ -169,7 +169,7 @@ const uploadCustomers = async (req, res) => {
 
   parseCSVFile(req.file.path, 'customer', (row, err) => {
     if (err) {
-      return res.status(400).json({ message: err.message });
+      return res.status(400).json(errorResponse(err.message));
     }
 
     const customer = {
@@ -204,7 +204,7 @@ const uploadCustomers = async (req, res) => {
 
     if (contactPersonErrors.length > 0 || addressErrors.length > 0) {
       errors.push({
-        customer,
+        data: customer,
         errors: [...contactPersonErrors, ...addressErrors],
       });
     } else {
@@ -212,11 +212,11 @@ const uploadCustomers = async (req, res) => {
     }
   }, async (err) => {
     if (err) {
-      return res.status(500).json({ message: "Error uploading customers!", error: err.message });
+      return res.status(500).json(errorResponse("Error uploading customers!", [err.message]));
     }
 
     if (errors.length > 0) {
-      return res.status(400).json({ message: "Validation errors occurred!", errors });
+      return res.status(400).json(errorResponse("Validation", errors));
     }
 
     for (const customer of customers) {
@@ -232,7 +232,7 @@ const uploadCustomers = async (req, res) => {
     }
 
     if (errors.length) {
-      return res.status(400).json({ message: "Some customers were not created", errors });
+      return res.status(400).json(errorResponse("Some customers were not created", errors));
     }
 
     res.status(201).json({ message: "Customers uploaded successfully" });
@@ -241,7 +241,7 @@ const uploadCustomers = async (req, res) => {
 
 const uploadContactPersons = async (req, res) => {
   if (!req.file) {
-    return res.status(400).json({ message: "No file uploaded!" });
+    return res.status(400).json(errorResponse("No file uploaded!"));
   }
 
   const contactPersons = [];
@@ -249,7 +249,7 @@ const uploadContactPersons = async (req, res) => {
 
   parseCSVFile(req.file.path, 'contactPerson', (row, err) => {
     if (err) {
-      return res.status(400).json({ message: err.message });
+      return res.status(400).json(errorResponse(err.message));
     }
 
     const contactPerson = {
@@ -263,8 +263,9 @@ const uploadContactPersons = async (req, res) => {
     // Validate contact person
     const validationErrors = validateContactPerson(contactPerson);
     if (validationErrors.length > 0) {
+      contactPerson.intnr = row["A"];
       errors.push({
-        contactPerson,
+        data: contactPerson,
         errors: validationErrors,
       });
     } else {
@@ -275,11 +276,11 @@ const uploadContactPersons = async (req, res) => {
     }
   }, async (err) => {
     if (err) {
-      return res.status(500).json({ message: "Error uploading contact persons!", error: err.message });
+      return res.status(500).json(errorResponse("Error uploading contact persons!", [err.message]));
     }
 
     if (errors.length > 0) {
-      return res.status(400).json({ message: "Validation errors occurred!", errors });
+      return res.status(400).json(errorResponse("Validation", errors));
     }
 
     for (const contactPersonEntry of contactPersons) {
@@ -294,7 +295,7 @@ const uploadContactPersons = async (req, res) => {
     }
 
     if (errors.length) {
-      return res.status(400).json({ message: "Some contact persons were not added", errors });
+      return res.status(400).json(errorResponse("Some contact persons were not added", errors));
     }
 
     res.status(201).json({ message: "Contact persons uploaded successfully!" });
@@ -303,7 +304,7 @@ const uploadContactPersons = async (req, res) => {
 
 const uploadAddresses = async (req, res) => {
   if (!req.file) {
-    return res.status(400).json({ message: "No file uploaded!" });
+    return res.status(400).json(errorResponse("No file uploaded!"));
   }
 
   const addresses = [];
@@ -311,7 +312,7 @@ const uploadAddresses = async (req, res) => {
 
   parseCSVFile(req.file.path, 'address', (row, err) => {
     if (err) {
-      return res.status(400).json({ message: err.message });
+      return res.status(400).json(errorResponse(err.message));
     }
 
     const address = {
@@ -328,8 +329,9 @@ const uploadAddresses = async (req, res) => {
     // Validate address
     const validationErrors = validateAddress(address);
     if (validationErrors.length > 0) {
+      address.intnr = row["A"];
       errors.push({
-        address,
+        data: address,
         errors: validationErrors,
       });
     } else {
@@ -340,11 +342,11 @@ const uploadAddresses = async (req, res) => {
     }
   }, async (err) => {
     if (err) {
-      return res.status(500).json({ message: "Error uploading addresses!", error: err.message });
+      return res.status(500).json(errorResponse("Error uploading addresses!", [err.message]));
     }
 
     if (errors.length > 0) {
-      return res.status(400).json({ message: "Validation errors occurred!", errors });
+      return res.status(400).json(errorResponse("Validation", errors));
     }
 
     for (const addressEntry of addresses) {
@@ -368,7 +370,7 @@ const uploadAddresses = async (req, res) => {
     }
 
     if (errors.length) {
-      return res.status(400).json({ message: "Some addresses were not added", errors });
+      return res.status(400).json(errorResponse("Some addresses were not added", errors));
     }
 
     res.status(201).json({ message: "Addresses uploaded successfully!" });
@@ -400,6 +402,12 @@ const parseCSVFile = (filePath, fileType, rowHandler, endHandler) => {
 
   parser.on("error", (err) => endHandler(err));
 };
+
+// Helper function for standardized error responses
+const errorResponse = (message, errors = []) => ({
+  message,
+  errors
+});
 
 module.exports = {
   getCustomers,

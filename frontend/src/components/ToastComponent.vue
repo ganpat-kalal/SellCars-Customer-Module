@@ -5,9 +5,7 @@
                 <strong class="me-auto">{{ toastTitle }}</strong>
                 <button type="button" class="btn-close" @click="showToast = false"></button>
             </div>
-            <div class="toast-body">
-                {{ message }}
-            </div>
+            <div v-html="formattedMessage" class="toast-body"></div>
         </div>
     </div>
 </template>
@@ -39,7 +37,7 @@ export default defineComponent({
                 showToast.value = true;
                 setTimeout(() => {
                     showToast.value = false;
-                }, 6000);
+                }, 10000);
             }
         });
 
@@ -69,10 +67,15 @@ export default defineComponent({
             }
         });
 
+        const formattedMessage = computed(() => {
+            return props.message.replace(/\n/g, '<br>');
+        });
+
         return {
             showToast,
             toastTypeClass,
-            toastTitle
+            toastTitle,
+            formattedMessage
         };
     }
 });

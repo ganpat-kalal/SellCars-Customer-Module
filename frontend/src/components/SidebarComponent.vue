@@ -106,16 +106,32 @@ export default defineComponent({
             } catch (error) {
                 errorMessage.value = '';
                 if (axios.isAxiosError(error)) {
-                    if (error.response?.data.errors) {
-                        errorMessage.value = error.response?.data.errors.join('\n');
-                    } else if (error.response?.data.message) {
-                        errorMessage.value = error.response?.data.message;
+                    const responseErrors = error.response?.data.errors;
+                    const responseMessage = error.response?.data.message;
+
+                    if(responseMessage === 'Validation') {
+                        errorMessage.value = formatErrors(responseErrors);
+                    } else if (responseErrors && responseErrors.length > 0) {
+                        errorMessage.value = responseErrors.join('\n');
+                    } else if (responseMessage) {
+                        errorMessage.value = responseMessage;
+                    } else {
+                        errorMessage.value = 'An unexpected error occurred.';
                     }
                 } else {
                     errorMessage.value = 'File upload failed: ' + error;
                 }
                 emit('file-uploaded');
             }
+        };
+
+        const formatErrors = (errors: any[]): string => {
+            return errors.map((errorItem: any) => {
+                const customer = errorItem.data;
+                const customerDetails = `INTNR: ${customer.intnr}`;
+                const errorMessages = errorItem.errors.join('\n');
+                return `${customerDetails}\n Errors: ${errorMessages}`;
+            }).join('\n');
         };
 
         const resetInputField = (type: string) => {

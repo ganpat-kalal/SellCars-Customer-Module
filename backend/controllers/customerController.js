@@ -187,14 +187,14 @@ const uploadCustomers = async (req, res) => {
       ],
       addresses: [
         {
-          company_name: row["H"],
+          company_name: (row["B"] === CustomerTypes.COMPANY || row["B"] === CustomerTypes.DEALER) ? row["H"] : undefined,
           country: row["I"],
           city: row["J"],
           zip: row["K"],
-          fax: row["L"],
-          phone: row["M"],
+          fax: (row["B"] === CustomerTypes.COMPANY || row["B"] === CustomerTypes.DEALER) ? row["L"] : undefined,
+          phone: (row["B"] === CustomerTypes.COMPANY || row["B"] === CustomerTypes.DEALER) ? row["M"] : undefined,
           street: row["N"],
-          email: row["O"],
+          email: (row["B"] === CustomerTypes.COMPANY || row["B"] === CustomerTypes.DEALER) ? row["O"] : undefined,
         },
       ],
     };
@@ -270,7 +270,7 @@ const uploadContactPersons = async (req, res) => {
     } else {
       contactPersons.push({
         intnr: row["A"],
-        contact_persons: [contactPerson],
+        contactPerson,
       });
     }
   }, async (err) => {
@@ -282,14 +282,14 @@ const uploadContactPersons = async (req, res) => {
       return res.status(400).json({ message: "Validation errors occurred!", errors });
     }
 
-    for (const contactPerson of contactPersons) {
-      const existingCustomer = await Customer.findOne({ intnr: contactPerson.intnr });
+    for (const contactPersonEntry of contactPersons) {
+      const existingCustomer = await Customer.findOne({ intnr: contactPersonEntry.intnr });
       if (existingCustomer) {
         // Update existing customer with new contact person
-        existingCustomer.contact_persons.push(contactPerson.contact_persons[0]);
+        existingCustomer.contact_persons.push(contactPersonEntry.contactPerson);
         await existingCustomer.save();
       } else {
-        errors.push(`Customer with intnr ${contactPerson.intnr} does not exist.`);
+        errors.push(`Customer with intnr ${contactPersonEntry.intnr} does not exist.`);
       }
     }
 
@@ -335,7 +335,7 @@ const uploadAddresses = async (req, res) => {
     } else {
       addresses.push({
         intnr: row["A"],
-        addresses: [address],
+        address,
       });
     }
   }, async (err) => {
@@ -347,14 +347,23 @@ const uploadAddresses = async (req, res) => {
       return res.status(400).json({ message: "Validation errors occurred!", errors });
     }
 
-    for (const address of addresses) {
-      const existingCustomer = await Customer.findOne({ intnr: address.intnr });
+    for (const addressEntry of addresses) {
+      const existingCustomer = await Customer.findOne({ intnr: addressEntry.intnr });
       if (existingCustomer) {
+        const address = addressEntry.address;
+        // Remove unnecessary fields if the customer type is not COMPANY or DEALER
+        if (![CustomerTypes.COMPANY, CustomerTypes.DEALER].includes(existingCustomer.type)) {
+          address.company_name = undefined;
+          address.fax = undefined;
+          address.phone = undefined;
+          address.email = undefined;
+        }
+
         // Update existing customer with new address
-        existingCustomer.addresses.push(address.addresses[0]);
+        existingCustomer.addresses.push(address);
         await existingCustomer.save();
       } else {
-        errors.push(`Customer with intnr ${address.intnr} does not exist.`);
+        errors.push(`Customer with intnr ${addressEntry.intnr} does not exist.`);
       }
     }
 

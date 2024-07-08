@@ -8,15 +8,16 @@
             <h5 class="mb-4">Customer CSV uploads</h5>
             <div class="upload-area" @drop.prevent="handleDrop($event, 'customers')" @dragover.prevent>
                 <p>Upload customer</p>
-                <input type="file" @change="handleFileUpload($event, 'customers')" accept=".csv" />
+                <input type="file" ref="customerInput" @change="handleFileUpload($event, 'customers')" accept=".csv" />
             </div>
             <div class="upload-area" @drop.prevent="handleDrop($event, 'contact-persons')" @dragover.prevent>
                 <p>Upload contact persons</p>
-                <input type="file" @change="handleFileUpload($event, 'contact-persons')" accept=".csv" />
+                <input type="file" ref="contactPersonInput" @change="handleFileUpload($event, 'contact-persons')"
+                    accept=".csv" />
             </div>
             <div class="upload-area" @drop.prevent="handleDrop($event, 'addresses')" @dragover.prevent>
                 <p>Upload addresses</p>
-                <input type="file" @change="handleFileUpload($event, 'addresses')" accept=".csv" />
+                <input type="file" ref="addressInput" @change="handleFileUpload($event, 'addresses')" accept=".csv" />
             </div>
         </div>
         <div class="logout-section">
@@ -45,6 +46,10 @@ export default defineComponent({
         const lastLogin = ref('');
         const errorMessage = ref('');
         const successMessage = ref('');
+
+        const customerInput = ref<HTMLInputElement | null>(null);
+        const contactPersonInput = ref<HTMLInputElement | null>(null);
+        const addressInput = ref<HTMLInputElement | null>(null);
 
         const setCurrentUser = () => {
             const user = getCurrentUser();
@@ -81,6 +86,7 @@ export default defineComponent({
             const files = target?.files;
             if (files && files[0]) {
                 await processUploads(files, type);
+                resetInputField(type);
             } else {
                 errorMessage.value = 'No files found!';
             }
@@ -95,20 +101,40 @@ export default defineComponent({
             try {
                 errorMessage.value = '';
                 await uploadFile(type, files[0]);
-                successMessage.value = 'Customers uploaded successfully!';
+                successMessage.value = `${type.charAt(0).toUpperCase() + type.slice(1)} uploaded successfully!`;
                 emit('file-uploaded');
             } catch (error) {
                 errorMessage.value = '';
                 if (axios.isAxiosError(error)) {
-                    if (error.response?.data.error) {
-                        errorMessage.value = error.response?.data.error;
-                    } else if (error.response?.data.errors) {
+                    if (error.response?.data.errors) {
                         errorMessage.value = error.response?.data.errors.join('\n');
+                    } else if (error.response?.data.message) {
+                        errorMessage.value = error.response?.data.message;
                     }
                 } else {
                     errorMessage.value = 'File upload failed: ' + error;
                 }
                 emit('file-uploaded');
+            }
+        };
+
+        const resetInputField = (type: string) => {
+            switch (type) {
+                case 'customers':
+                    if (customerInput.value) {
+                        customerInput.value.value = '';
+                    }
+                    break;
+                case 'contact-persons':
+                    if (contactPersonInput.value) {
+                        contactPersonInput.value.value = '';
+                    }
+                    break;
+                case 'addresses':
+                    if (addressInput.value) {
+                        addressInput.value.value = '';
+                    }
+                    break;
             }
         };
 
@@ -124,7 +150,10 @@ export default defineComponent({
             lastLogin,
             userLogout,
             errorMessage,
-            successMessage
+            successMessage,
+            customerInput,
+            contactPersonInput,
+            addressInput
         };
     },
 });

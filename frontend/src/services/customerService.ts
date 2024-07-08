@@ -1,7 +1,7 @@
 import axios from "axios";
 import { Customer } from "@/types/Customer";
 
-const API_URL = `${process.env.API_BASE_URL}/customers`;
+const API_URL = `${process.env.VUE_APP_API_BASE_URL}/customers`;
 
 const fetchCustomers = async (): Promise<Customer[]> => {
   const response = await axios.get(API_URL, {

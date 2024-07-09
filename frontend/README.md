@@ -73,8 +73,8 @@ src/
 ├── assets/
 ├── components/
 │   ├── modals/
-│       ├── CustomerModal.vue
-│       ├── ConfirmModal.vue
+│   │   └── CustomerModal.vue
+│   │   └── ConfirmModal.vue
 │   ├── ToastComponent.vue
 │   ├── SidebarComponent.vue
 │   ├── TableComponent.vue

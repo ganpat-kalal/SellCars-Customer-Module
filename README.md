@@ -48,6 +48,10 @@ SellCars is a car dealer company that sells vehicles to other car dealers (B2B),
 
 ## Getting Started
 
+### Prerequisites
+- Node.js and npm installed
+- MongoDB installed and running
+
 ### Backend Setup
 
 1. **Navigate to the backend directory:**
@@ -100,7 +104,16 @@ SellCars is a car dealer company that sells vehicles to other car dealers (B2B),
 4. **Start the development server:**
 
    ```sh
-   npm run serve
+   npm start
+   ```
+
+### Note: 
+
+- After setup backend, databases and frontend just do login. It will create three sample users (checkout createInitialUsers method in controllers/userController.js)
+- Use below credentials
+    ```sh
+   Username:- user1@example.com
+   Password:- password1
    ```
 
 ## Project Structure
@@ -109,15 +122,29 @@ SellCars is a car dealer company that sells vehicles to other car dealers (B2B),
 SELLCARS-CUSTOMER-MODULE/
 ├── backend/
 │   ├── config/
+│   │   └── config.js
+│   │   └── db.js
 │   ├── controllers/
+│   │   └── customerController.js
+│   │   └── userController.js
 │   ├── enums/
+│   │   └── customerTypes.js
 │   ├── middleware/
+│   │   └── authMiddleware.js
 │   ├── models/
+│   │   └── addressModel.js
+│   │   └── contactPersonModel.js
+│   │   └── customerModel.js
+│   │   └── userModel.js
 │   ├── routes/
+│   │   └── customerRoutes.js
+│   │   └── userRoutes.js
+│   ├── scripts/
+│   │   └── createUsers.js
+│   ├── utils/
+│   │   └── validation.js
 │   ├── .env
 │   ├── app.js
-│   ├── createUsers.js
-│   ├── validation.js
 ├── frontend/
 │   ├── assets/
 │   ├── components/

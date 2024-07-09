@@ -47,16 +47,26 @@ const createCustomer = async (req, res) => {
     }
 
     for (let contactPerson of contact_persons) {
-      const errors = validateContactPerson(contactPerson);
-      if (errors.length > 0) {
-        return res.status(400).json(errorResponse("Invalid contact person data!", errors));
+      const ContactPersonValidationErrors = validateContactPerson(contactPerson);
+      if (ContactPersonValidationErrors.length > 0) {
+        contactPerson.intnr = req.params.intnr;
+        let errors = [{
+          data: contactPerson,
+          errors: ContactPersonValidationErrors,
+        }];
+        return res.status(400).json(errorResponse("Validation", errors));
       }
     }
 
     for (let address of addresses) {
-      const errors = validateAddress(address);
-      if (errors.length > 0) {
-        return res.status(400).json(errorResponse("Invalid address data!", errors));
+      const AddressesValidationErrors = validateAddress(address);
+      if (AddressesValidationErrors.length > 0) {
+        address.intnr = req.params.intnr;
+        let errors = [{
+          data: address,
+          errors: AddressesValidationErrors,
+        }];
+        return res.status(400).json(errorResponse("Validation", errors));
       }
     }
 
@@ -99,7 +109,12 @@ const updateCustomer = async (req, res) => {
     const contactPerson = contact_persons[0];
     const contactPersonErrors = validateContactPerson(contactPerson);
     if (contactPersonErrors.length > 0) {
-      return res.status(400).json(errorResponse("Invalid contact person data!", contactPersonErrors));
+      contactPerson.intnr = req.params.intnr;
+      let errors = [{
+        data: contactPerson,
+        errors: contactPersonErrors,
+      }];
+      return res.status(400).json(errorResponse("Validation", errors));
     }
 
     // Validate addresses
@@ -114,7 +129,12 @@ const updateCustomer = async (req, res) => {
     const address = addresses[0];
     const addressErrors = validateAddress(address);
     if (addressErrors.length > 0) {
-      return res.status(400).json(errorResponse("Invalid address data!", addressErrors));
+      address.intnr = req.params.intnr;
+      let errors = [{
+        data: address,
+        errors: addressErrors,
+      }];
+      return res.status(400).json(errorResponse("Validation", errors));
     }
 
     // Ensure company_name and address email are only set if type is COMPANY or DEALER
@@ -135,6 +155,7 @@ const updateCustomer = async (req, res) => {
         'contact_persons.0.last_name': contactPerson.last_name,
         'contact_persons.0.email': contactPerson.email,
         'contact_persons.0.mobile_phone': contactPerson.mobile_phone,
+        'contact_persons.0.birth_date': contactPerson.birth_date,
         'addresses.0.company_name': type == CustomerTypes.PRIVATE ? null : address.company_name,
         'addresses.0.country': address.country,
         'addresses.0.zip': address.zip,

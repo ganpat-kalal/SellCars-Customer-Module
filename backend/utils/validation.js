@@ -17,9 +17,7 @@ const validateContactPerson = (contactPerson) => {
     } else if (!/^\d{7,15}$/.test(contactPerson.mobile_phone)) {
         errors.push("Invalid phone number format!");
     }
-    if (!contactPerson.birth_date) {
-        errors.push("Birth date is required!");
-    } else if (!/^\d{4}-\d{2}-\d{2}$/.test(contactPerson.birth_date)) {
+    if (contactPerson.birth_date && !/^\d{4}-\d{2}-\d{2}$/.test(contactPerson.birth_date)) {
         errors.push("Invalid birth date format (YYYY-MM-DD)!");
     }
 

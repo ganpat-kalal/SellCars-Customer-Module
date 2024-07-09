@@ -12,15 +12,13 @@ const fetchCustomers = async (): Promise<Customer[]> => {
   return response.data;
 };
 
-const uploadFile = async (type: string, file: File): Promise<void> => {
-  const formData = new FormData();
-  formData.append("file", file);
-  await axios.post(`${API_URL}/upload/${type}`, formData, {
+const createCustomer = async (customer: Customer): Promise<Customer> => {
+  const response = await axios.post(API_URL, customer, {
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
-      "Content-Type": "multipart/form-data",
     },
   });
+  return response.data;
 };
 
 const deleteCustomer = async (intnr: string): Promise<void> => {
@@ -40,4 +38,21 @@ const updateCustomer = async (customer: Customer): Promise<Customer> => {
   return response.data;
 };
 
-export { fetchCustomers, uploadFile, deleteCustomer, updateCustomer };
+const uploadFile = async (type: string, file: File): Promise<void> => {
+  const formData = new FormData();
+  formData.append("file", file);
+  await axios.post(`${API_URL}/upload/${type}`, formData, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export {
+  fetchCustomers,
+  createCustomer,
+  deleteCustomer,
+  updateCustomer,
+  uploadFile,
+};

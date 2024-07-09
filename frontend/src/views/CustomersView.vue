@@ -13,7 +13,10 @@
 
       <!-- Main component start -->
       <main class="main-content">
-        <h4>Customers</h4>
+        <div class="d-flex justify-content-between align-items-center">
+          <h4>Customers</h4>
+          <button @click="openCreateModal" class="btn btn-primary">Create Customer</button>
+        </div>
         <div class="search-bar">
           <input type="text" v-model="searchQuery" placeholder="Search by all columns" />
         </div>
@@ -24,8 +27,8 @@
         <!-- Table Component end -->
 
         <!-- Edit Customer Modal start -->
-        <EditCustomerModal :show="showEditModal" :customer="selectedCustomer" @close="closeEditModal"
-          @saved="fetchCustomersData" />
+        <CustomerModal :show="showEditModal" :customer="selectedCustomer" :isEditMode="isEditMode"
+          @close="closeEditModal" @saved="fetchCustomersData" />
         <!-- Edit Customer Modal end -->
 
         <!-- Confirm Delete Modal start -->
@@ -52,7 +55,7 @@ import axios from 'axios';
 import { fetchCustomers, deleteCustomer } from '@/services/customerService';
 import { Customer } from '@/types/Customer';
 import SidebarComponent from '@/components/SidebarComponent.vue';
-import EditCustomerModal from '@/components/modals/EditCustomerModal.vue';
+import CustomerModal from '@/components/modals/CustomerModal.vue';
 import TableComponent from '@/components/TableComponent.vue';
 import ConfirmModal from '@/components/modals/ConfirmModal.vue';
 import ToastComponent from '@/components/ToastComponent.vue';
@@ -61,7 +64,7 @@ export default defineComponent({
   name: 'CustomersView',
   components: {
     SidebarComponent,
-    EditCustomerModal,
+    CustomerModal,
     TableComponent,
     ConfirmModal,
     ToastComponent
@@ -71,6 +74,7 @@ export default defineComponent({
     const searchQuery = ref('');
     const showEditModal = ref(false);
     const selectedCustomer = ref<Customer | null>(null);
+    const isEditMode = ref(true);
     const showDeleteModal = ref(false);
     const customerToDelete = ref<string | null>(null);
     const errorMessage = ref('');
@@ -92,20 +96,28 @@ export default defineComponent({
     const filteredCustomers = computed(() => {
       return customers.value.filter(customer => {
         return (
-          customer?.intnr.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-          customer?.contact_persons?.[0]?.first_name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-          customer?.contact_persons?.[0]?.last_name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-          customer?.addresses?.[0]?.company_name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-          customer?.addresses?.[0]?.country.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-          customer?.addresses?.[0]?.zip.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-          customer?.addresses?.[0]?.city.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-          customer?.addresses?.[0]?.street.toLowerCase().includes(searchQuery.value.toLowerCase())
+          (customer?.intnr?.toLowerCase() ?? '').includes(searchQuery.value.toLowerCase()) ||
+          (customer?.contact_persons?.[0]?.first_name?.toLowerCase() ?? '').includes(searchQuery.value.toLowerCase()) ||
+          (customer?.contact_persons?.[0]?.last_name?.toLowerCase() ?? '').includes(searchQuery.value.toLowerCase()) ||
+          (customer?.addresses?.[0]?.company_name?.toLowerCase() ?? '').includes(searchQuery.value.toLowerCase()) ||
+          (customer?.addresses?.[0]?.country?.toLowerCase() ?? '').includes(searchQuery.value.toLowerCase()) ||
+          (customer?.addresses?.[0]?.zip?.toLowerCase() ?? '').includes(searchQuery.value.toLowerCase()) ||
+          (customer?.addresses?.[0]?.city?.toLowerCase() ?? '').includes(searchQuery.value.toLowerCase()) ||
+          (customer?.addresses?.[0]?.street?.toLowerCase() ?? '').includes(searchQuery.value.toLowerCase())
         );
       });
     });
 
+
+    const openCreateModal = () => {
+      selectedCustomer.value = null;
+      isEditMode.value = false;
+      showEditModal.value = true;
+    };
+
     const openEditModal = (customer: Customer) => {
       selectedCustomer.value = { ...customer };
+      isEditMode.value = true;
       showEditModal.value = true;
     };
 
@@ -149,8 +161,10 @@ export default defineComponent({
       filteredCustomers,
       showEditModal,
       selectedCustomer,
+      isEditMode,
       showDeleteModal,
       customerToDelete,
+      openCreateModal,
       openEditModal,
       closeEditModal,
       openDeleteModal,

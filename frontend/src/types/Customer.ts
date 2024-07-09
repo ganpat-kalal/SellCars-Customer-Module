@@ -4,7 +4,7 @@ export interface ContactPerson {
   email: string;
   mobile_phone: string;
   birth_date: string;
-  address: string;
+  address: Address | null;
 }
 
 export interface Address {

@@ -35,6 +35,9 @@
                         </button>
                     </td>
                 </tr>
+                <tr v-if="!sortedCustomers.length">
+                    <td class="text-center m-1" colspan="9">No customers found!</td>
+                </tr>
             </tbody>
         </table>
     </div>

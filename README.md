@@ -14,12 +14,11 @@ This project is a customer management module for the SellCars web application. I
 - [Backend](#backend)
   - [API Endpoints](#api-endpoints)
   - [Database Models](#database-models)
-  - [Using CSV Files for Testing](#using-csv-files-for-testing)
 - [Frontend](#frontend)
   - [Components](#components)
   - [Services](#services)
   - [Views](#views)
-- [Authors](#authors)
+- [Using CSV Files for Testing](#using-csv-files-for-testing)
 
 ## Project Description
 

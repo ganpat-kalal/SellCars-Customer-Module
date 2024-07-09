@@ -222,17 +222,12 @@ const uploadCustomers = async (req, res) => {
     for (const customer of customers) {
       const existingCustomer = await Customer.findOne({ intnr: customer.intnr });
       if (existingCustomer) {
-        errors.push(`Customer with intnr ${customer.intnr} already exists.`);
-        continue;
+        return res.status(400).json(errorResponse(`Customer with intnr ${customer.intnr} already exists.`));
       }
 
       const createdCustomer = await Customer.create(customer);
       createdCustomer.contact_persons[0].address = createdCustomer.addresses[0]._id;
       await createdCustomer.save();
-    }
-
-    if (errors.length) {
-      return res.status(400).json(errorResponse("Some customers were not created", errors));
     }
 
     res.status(201).json({ message: "Customers uploaded successfully" });
@@ -290,12 +285,8 @@ const uploadContactPersons = async (req, res) => {
         existingCustomer.contact_persons.push(contactPersonEntry.contactPerson);
         await existingCustomer.save();
       } else {
-        errors.push(`Customer with intnr ${contactPersonEntry.intnr} does not exist.`);
+        return res.status(400).json(errorResponse(`Customer with intnr ${contactPersonEntry.intnr} does not exist.`));
       }
-    }
-
-    if (errors.length) {
-      return res.status(400).json(errorResponse("Some contact persons were not added", errors));
     }
 
     res.status(201).json({ message: "Contact persons uploaded successfully!" });
@@ -365,12 +356,8 @@ const uploadAddresses = async (req, res) => {
         existingCustomer.addresses.push(address);
         await existingCustomer.save();
       } else {
-        errors.push(`Customer with intnr ${addressEntry.intnr} does not exist.`);
+        return res.status(400).json(errorResponse(`Customer with intnr ${addressEntry.intnr} does not exist.`));
       }
-    }
-
-    if (errors.length) {
-      return res.status(400).json(errorResponse("Some addresses were not added", errors));
     }
 
     res.status(201).json({ message: "Addresses uploaded successfully!" });
@@ -398,7 +385,7 @@ const parseCSVFile = (filePath, fileType, rowHandler, endHandler) => {
     rowHandler(row);
   });
 
-  parser.on("end", endHandler);
+  parser.on("end", () => endHandler());
 
   parser.on("error", (err) => endHandler(err));
 };

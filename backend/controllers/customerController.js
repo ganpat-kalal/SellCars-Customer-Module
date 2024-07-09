@@ -40,6 +40,12 @@ const createCustomer = async (req, res) => {
       return res.status(400).json(errorResponse("Invalid customer type!"));
     }
 
+    if (customerData.type === CustomerTypes.PRIVATE) {
+      if (contact_persons.length > 1 || addresses.length > 1) {
+        return res.status(400).json(errorResponse("PRIVATE customer must have only one contact person and one address!"));
+      }
+    }
+
     for (let contactPerson of contact_persons) {
       const errors = validateContactPerson(contactPerson);
       if (errors.length > 0) {
@@ -85,6 +91,11 @@ const updateCustomer = async (req, res) => {
     if (contact_persons.length === 0) {
       return res.status(400).json(errorResponse("Customer must have at least one contact person!"));
     }
+
+    if (type === CustomerTypes.PRIVATE && contact_persons.length > 1) {
+      return res.status(400).json(errorResponse("PRIVATE customer must have only one contact person!"));
+    }
+
     const contactPerson = contact_persons[0];
     const contactPersonErrors = validateContactPerson(contactPerson);
     if (contactPersonErrors.length > 0) {
@@ -95,6 +106,11 @@ const updateCustomer = async (req, res) => {
     if (addresses.length === 0) {
       return res.status(400).json(errorResponse("Customer must have at least one address!"));
     }
+
+    if (type === CustomerTypes.PRIVATE && addresses.length > 1) {
+      return res.status(400).json(errorResponse("PRIVATE customer must have only one address!"));
+    }
+
     const address = addresses[0];
     const addressErrors = validateAddress(address);
     if (addressErrors.length > 0) {
@@ -199,6 +215,10 @@ const uploadCustomers = async (req, res) => {
       ],
     };
 
+    if (customer.type === CustomerTypes.PRIVATE && (customer.contact_persons.length > 1 || customer.addresses.length > 1)) {
+      return res.status(400).json(errorResponse("PRIVATE customer must have only one contact person and one address!"));
+    }
+
     const contactPersonErrors = validateContactPerson(customer.contact_persons[0]);
     const addressErrors = validateAddress(customer.addresses[0]);
 
@@ -254,6 +274,10 @@ const uploadContactPersons = async (req, res) => {
       mobile_phone: row["F"],
       birth_date: row["G"],
     };
+
+    if (row["B"] === CustomerTypes.PRIVATE) {
+      return res.status(400).json(errorResponse("Cannot upload multiple contact persons for PRIVATE customer!"));
+    }
 
     // Validate contact person
     const validationErrors = validateContactPerson(contactPerson);
@@ -316,6 +340,10 @@ const uploadAddresses = async (req, res) => {
       street: row["N"],
       email: row["O"],
     };
+
+    if (row["B"] === CustomerTypes.PRIVATE) {
+      return res.status(400).json(errorResponse("Cannot upload multiple addresses for PRIVATE customer!"));
+    }
 
     // Validate address
     const validationErrors = validateAddress(address);

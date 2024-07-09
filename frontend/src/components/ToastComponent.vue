@@ -37,7 +37,7 @@ export default defineComponent({
                 showToast.value = true;
                 setTimeout(() => {
                     showToast.value = false;
-                }, 10000);
+                }, 6000);
             }
         });
 
